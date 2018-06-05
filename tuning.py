@@ -112,7 +112,6 @@ del std_of_installment_seq
 del prev_installment_feature
 del late_installment
 del late_mean
-del prev_installment_feature
 del prev_installment_feature_by_curr
 gc.collect()
 
