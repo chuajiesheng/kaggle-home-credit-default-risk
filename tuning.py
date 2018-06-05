@@ -1186,6 +1186,44 @@ print("AUC of LightGBM: {}".format(auc_lgbm))
 print("AUC of stacked Logistic Regression: {}".format(auc_stacked))
 
 #
+# Train on entire training set & predict test set
+#
+test_pred_xgboost = predict_models.predict_xgboost(
+    param_grid_xgboost,
+    train,
+    test,
+    col_type,
+    nthread=N_THREADS,
+)
+
+test_pred_lightgbm = predict_models.predict_lightgbm(
+    param_grid_lightgbm,
+    train,
+    test,
+    col_type,
+    nthread=N_THREADS,
+)
+
+test_stack = pd.merge(test_pred_xgboost, test_pred_lightgbm, on=col_type['ID'])
+test_stack = pd.merge(test_stack, test.loc[:, [col_type['ID']]], on=col_type['ID'])
+
+test_pred_stack_logistic_regression = predict_models.predict_logistic_regression(
+    param_grid_stack_logistic_regression,
+    train_stack,
+    test_stack,
+    col_type_stack,
+    nthread=N_THREADS,
+)
+
+auc_xgboost = metrics.roc_auc_score(test[col_type['target']], test_pred_xgboost.pred_xgboost)
+auc_lgbm = metrics.roc_auc_score(test[col_type['target']], test_pred_lightgbm.pred_lightgbm)
+auc_stacked = metrics.roc_auc_score(test[col_type['target']], test_pred_stack_logistic_regression.pred_logistic_regression)
+print("AUC of xgboost: {}".format(auc_xgboost))
+print("AUC of LightGBM: {}".format(auc_lgbm))
+print("AUC of stacked Logistic Regression: {}".format(auc_stacked))
+
+
+#
 # Full data
 #
 train = X.copy().reset_index()
@@ -1235,14 +1273,6 @@ test_pred_stack_logistic_regression = predict_models.predict_logistic_regression
     col_type_stack,
     nthread=N_THREADS,
 )
-
-auc_xgboost = metrics.roc_auc_score(test[col_type['target']], test_pred_xgboost.pred_xgboost)
-auc_lgbm = metrics.roc_auc_score(test[col_type['target']], test_pred_lightgbm.pred_lightgbm)
-auc_stacked = metrics.roc_auc_score(test[col_type['target']],
-                                    test_pred_stack_logistic_regression.pred_logistic_regression)
-print("AUC of xgboost: {}".format(auc_xgboost))
-print("AUC of LightGBM: {}".format(auc_lgbm))
-print("AUC of stacked Logistic Regression: {}".format(auc_stacked))
 
 #
 # Prepare submit
