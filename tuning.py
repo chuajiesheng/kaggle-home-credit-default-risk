@@ -136,8 +136,6 @@ X = X.merge(right=count_day_credit, how='left', on='SK_ID_CURR')
 X_test = X_test.merge(right=count_day_credit, how='left', on='SK_ID_CURR')
 
 print('count_day_credit', X.shape)
-del count_day_credit
-gc.collect()
 
 #
 # count_credit_type
