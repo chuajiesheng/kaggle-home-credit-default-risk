@@ -140,7 +140,6 @@ print('count_day_credit', X.shape)
 #
 # count_credit_type
 #
-
 count_credit_type = bureau[['SK_ID_CURR', 'CREDIT_TYPE']].groupby(by=['SK_ID_CURR'])['CREDIT_TYPE'].nunique()
 count_credit_type = count_credit_type.reset_index().rename(index=str, columns={'CREDIT_TYPE': 'BUREAU_LOAN_TYPES'})
 
@@ -148,13 +147,10 @@ X = X.merge(right=count_credit_type, how='left', on='SK_ID_CURR')
 X_test = X_test.merge(right=count_credit_type, how='left', on='SK_ID_CURR')
 
 print('count_credit_type', X.shape)
-del count_credit_type
-gc.collect()
 
 #
 # credit_variety
 #
-
 credit_variety = count_day_credit.merge(right=count_credit_type, how='left', on='SK_ID_CURR')
 credit_variety['AVERAGE_LOAN_TYPE'] = credit_variety['BUREAU_LOAN_COUNT'] / credit_variety['BUREAU_LOAN_TYPES']
 del credit_variety['BUREAU_LOAN_COUNT'], credit_variety['BUREAU_LOAN_TYPES']
@@ -166,7 +162,6 @@ print('credit_variety', X.shape)
 del count_day_credit
 del count_credit_type
 del credit_variety
-
 
 #
 # bureau_active_sum
