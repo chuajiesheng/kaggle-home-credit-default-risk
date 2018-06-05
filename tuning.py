@@ -22,7 +22,7 @@ os.listdir(DATA_DIR)
 
 ID_COLUMN = 'SK_ID_CURR'
 LABEL_COLUMN = 'TARGET'
-N_THREADS = round(cpu_count() * 2 * 0.8)
+N_THREADS = round(cpu_count() * 2 * 0.9)
 
 INPUT_FILE = os.path.join(DATA_DIR, 'application_train.csv.zip')
 X = pd.read_csv(INPUT_FILE)
