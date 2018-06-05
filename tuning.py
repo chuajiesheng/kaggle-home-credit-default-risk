@@ -46,6 +46,7 @@ prev = pd.read_csv(PREV_APPLICATION_FILE)
 credit_card_bal = pd.read_csv(CREDIT_CARD_BAL_FILE)
 pos_cash = pd.read_csv(POS_CASH_FILE)
 installment_payment = pd.read_csv(INSTALLMENT_PAYMENT_FILE)
+print('finished reading file')
 
 #
 # Feature Generation
