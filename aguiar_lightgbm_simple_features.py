@@ -267,6 +267,12 @@ def kfold_lightgbm(df, num_folds, stratified=False):
     # Divide in training/validation and test data
     train_df = df[df['TARGET'].notnull()]
     test_df = df[df['TARGET'].isnull()]
+
+    train_df_filename = os.path.join(SUBMISSION_DIR, 'aguiar_train_{0:%Y-%m-%d_%H:%M:%S}.csv'.format(run_datetime))
+    test_df_filename = os.path.join(SUBMISSION_DIR, 'aguiar_test_{0:%Y-%m-%d_%H:%M:%S}.csv'.format(run_datetime))
+    train_df.to_csv(train_df_filename, index=False)
+    test_df.to_csv(test_df_filename, index=False)
+
     print("Starting LightGBM. Train shape: {}, test shape: {}".format(train_df.shape, test_df.shape))
     del df
     gc.collect()
@@ -375,6 +381,7 @@ def main(debug=False):
 
 
 if __name__ == "__main__":
-    submission_file_name = os.path.join(SUBMISSION_DIR, 'aguiar_{0:%Y-%m-%d_%H:%M:%S}.csv'.format(datetime.now()))
+    run_datetime = datetime.now()
+    submission_file_name = os.path.join(SUBMISSION_DIR, 'aguiar_{0:%Y-%m-%d_%H:%M:%S}.csv'.format(run_datetime))
     with timer("Full model run"):
         main(debug=False)
