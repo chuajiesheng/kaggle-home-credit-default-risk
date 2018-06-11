@@ -326,6 +326,10 @@ def kfold_lightgbm(df, num_folds, stratified=False):
     # Write submission file and plot feature importance
     test_df['TARGET'] = sub_preds
     test_df[['SK_ID_CURR', 'TARGET']].to_csv(submission_file_name, index=False)
+
+    feature_importance_filename = os.path.join(SUBMISSION_DIR, 'aguiar_feature_{0:%Y-%m-%d_%H:%M:%S}.csv'.format(run_datetime))
+    feature_importance_df.to_csv(feature_importance_filename, index=False)
+
     display_importances(feature_importance_df)
     return feature_importance_df
 

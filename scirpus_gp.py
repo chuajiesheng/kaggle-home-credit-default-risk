@@ -860,6 +860,8 @@ oof_preds = np.zeros(train.shape[0])
 sub_preds = np.zeros(test.shape[0])
 feats = [f for f in train.columns if f not in ['SK_ID_CURR', 'TARGET']]
 
+feature_importance_df = pd.DataFrame()
+
 for n_fold, (trn_idx, val_idx) in enumerate(folds.split(train)):
     trn_x, trn_y = train[feats].iloc[trn_idx], train.iloc[trn_idx]['TARGET']
     val_x, val_y = train[feats].iloc[val_idx], train.iloc[val_idx]['TARGET']
@@ -889,8 +891,18 @@ for n_fold, (trn_idx, val_idx) in enumerate(folds.split(train)):
     sub_preds += clf.predict_proba(test[feats], num_iteration=clf.best_iteration_)[:, 1] / folds.n_splits
 
     print('Fold %2d AUC : %.6f' % (n_fold + 1, roc_auc_score(val_y, oof_preds[val_idx])))
+
+    fold_importance_df = pd.DataFrame()
+    fold_importance_df["feature"] = feats
+    fold_importance_df["importance"] = clf.feature_importances_
+    fold_importance_df["fold"] = n_fold + 1
+    feature_importance_df = pd.concat([feature_importance_df, fold_importance_df], axis=0)
+
     del clf, trn_x, trn_y, val_x, val_y
     gc.collect()
+
+feature_importance_filename = os.path.join(SUBMISSION_DIR, 'scirpus_feature_{0:%Y-%m-%d_%H:%M:%S}.csv'.format(run_datetime))
+feature_importance_df.to_csv(feature_importance_filename, index=False)
 
 submission = pd.DataFrame({'SK_ID_CURR': ID, 'TARGET': sub_preds})
 submission.to_csv(submission_file_name, index=False)
