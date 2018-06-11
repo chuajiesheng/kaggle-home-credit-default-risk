@@ -33,6 +33,7 @@ print('Data loaded.\nMain application training data set shape = {}'.format(app_t
 print('Main application test data set shape = {}'.format(app_test_df.shape))
 print('Positive target proportion = {:.2f}'.format(app_train_df['TARGET'].mean()))
 
+
 def feature_engineering(app_data, bureau_df, bureau_balance_df, credit_card_df,
                         pos_cash_df, prev_app_df, install_df):
     """ 
@@ -42,16 +43,16 @@ def feature_engineering(app_data, bureau_df, bureau_balance_df, credit_card_df,
     
     Also, add any new features created from the existing ones
     """
-    
+
     # # Add new features
-    
+
     # Amount loaned relative to salary
     app_data['LOAN_INCOME_RATIO'] = app_data['AMT_CREDIT'] / app_data['AMT_INCOME_TOTAL']
     app_data['ANNUITY_INCOME_RATIO'] = app_data['AMT_ANNUITY'] / app_data['AMT_INCOME_TOTAL']
     app_data['ANNUITY LENGTH'] = app_data['AMT_CREDIT'] / app_data['AMT_ANNUITY']
-    
+
     # # Aggregate and merge supplementary datasets
-    
+
     print('Combined train & test input shape before any merging  = {}'.format(app_data.shape))
 
     # Previous applications
@@ -65,26 +66,26 @@ def feature_engineering(app_data, bureau_df, bureau_balance_df, credit_card_df,
     merged_df = merged_df.merge(prev_apps_avg, left_on='SK_ID_CURR', right_index=True,
                                 how='left', suffixes=['', '_PAVG'])
     print('Shape after merging with previous apps num data = {}'.format(merged_df.shape))
-    
+
     # Previous app categorical features
     prev_app_df, cat_feats, _ = process_dataframe(prev_app_df)
-    prev_apps_cat_avg = prev_app_df[cat_feats + ['SK_ID_CURR']].groupby('SK_ID_CURR')\
-                             .agg({k: lambda x: str(x.mode().iloc[0]) for k in cat_feats})
+    prev_apps_cat_avg = prev_app_df[cat_feats + ['SK_ID_CURR']].groupby('SK_ID_CURR') \
+        .agg({k: lambda x: str(x.mode().iloc[0]) for k in cat_feats})
     merged_df = merged_df.merge(prev_apps_cat_avg, left_on='SK_ID_CURR', right_index=True,
-                            how='left', suffixes=['', '_BAVG'])
+                                how='left', suffixes=['', '_BAVG'])
     print('Shape after merging with previous apps cat data = {}'.format(merged_df.shape))
 
     # Credit card data - numerical features
-    wm = lambda x: np.average(x, weights=-1/credit_card_df.loc[x.index, 'MONTHS_BALANCE'])
-    credit_card_avgs = credit_card_df.groupby('SK_ID_CURR').agg(wm)   
+    wm = lambda x: np.average(x, weights=-1 / credit_card_df.loc[x.index, 'MONTHS_BALANCE'])
+    credit_card_avgs = credit_card_df.groupby('SK_ID_CURR').agg(wm)
     merged_df = merged_df.merge(credit_card_avgs, left_on='SK_ID_CURR', right_index=True,
                                 how='left', suffixes=['', '_CCAVG'])
-    
+
     # Credit card data - categorical features
     most_recent_index = credit_card_df.groupby('SK_ID_CURR')['MONTHS_BALANCE'].idxmax()
-    cat_feats = credit_card_df.columns[credit_card_df.dtypes == 'object'].tolist()  + ['SK_ID_CURR']
+    cat_feats = credit_card_df.columns[credit_card_df.dtypes == 'object'].tolist() + ['SK_ID_CURR']
     merged_df = merged_df.merge(credit_card_df.loc[most_recent_index, cat_feats], left_on='SK_ID_CURR', right_on='SK_ID_CURR',
-                       how='left', suffixes=['', '_CCAVG'])
+                                how='left', suffixes=['', '_CCAVG'])
     print('Shape after merging with credit card data = {}'.format(merged_df.shape))
 
     # Credit bureau data - numerical features
@@ -92,27 +93,27 @@ def feature_engineering(app_data, bureau_df, bureau_balance_df, credit_card_df,
     merged_df = merged_df.merge(credit_bureau_avgs, left_on='SK_ID_CURR', right_index=True,
                                 how='left', suffixes=['', '_BAVG'])
     print('Shape after merging with credit bureau data = {}'.format(merged_df.shape))
-    
+
     # Bureau balance data
     most_recent_index = bureau_balance_df.groupby('SK_ID_BUREAU')['MONTHS_BALANCE'].idxmax()
     bureau_balance_df = bureau_balance_df.loc[most_recent_index, :]
     merged_df = merged_df.merge(bureau_balance_df, left_on='SK_ID_BUREAU', right_on='SK_ID_BUREAU',
-                            how='left', suffixes=['', '_B_B'])
+                                how='left', suffixes=['', '_B_B'])
     print('Shape after merging with bureau balance data = {}'.format(merged_df.shape))
 
     # Pos cash data - weight values by recency when averaging
-    wm = lambda x: np.average(x, weights=-1/pos_cash_df.loc[x.index, 'MONTHS_BALANCE'])
-    f = {'CNT_INSTALMENT': wm, 'CNT_INSTALMENT_FUTURE': wm, 'SK_DPD': wm, 'SK_DPD_DEF':wm}
-    cash_avg = pos_cash_df.groupby('SK_ID_CURR')['CNT_INSTALMENT','CNT_INSTALMENT_FUTURE',
+    wm = lambda x: np.average(x, weights=-1 / pos_cash_df.loc[x.index, 'MONTHS_BALANCE'])
+    f = {'CNT_INSTALMENT': wm, 'CNT_INSTALMENT_FUTURE': wm, 'SK_DPD': wm, 'SK_DPD_DEF': wm}
+    cash_avg = pos_cash_df.groupby('SK_ID_CURR')['CNT_INSTALMENT', 'CNT_INSTALMENT_FUTURE',
                                                  'SK_DPD', 'SK_DPD_DEF'].agg(f)
     merged_df = merged_df.merge(cash_avg, left_on='SK_ID_CURR', right_index=True,
                                 how='left', suffixes=['', '_CAVG'])
-    
+
     # Pos cash data data - categorical features
     most_recent_index = pos_cash_df.groupby('SK_ID_CURR')['MONTHS_BALANCE'].idxmax()
-    cat_feats = pos_cash_df.columns[pos_cash_df.dtypes == 'object'].tolist()  + ['SK_ID_CURR']
+    cat_feats = pos_cash_df.columns[pos_cash_df.dtypes == 'object'].tolist() + ['SK_ID_CURR']
     merged_df = merged_df.merge(pos_cash_df.loc[most_recent_index, cat_feats], left_on='SK_ID_CURR', right_on='SK_ID_CURR',
-                       how='left', suffixes=['', '_CAVG'])
+                                how='left', suffixes=['', '_CAVG'])
     print('Shape after merging with pos cash data = {}'.format(merged_df.shape))
 
     # Installments data
@@ -120,19 +121,20 @@ def feature_engineering(app_data, bureau_df, bureau_balance_df, credit_card_df,
     merged_df = merged_df.merge(ins_avg, left_on='SK_ID_CURR', right_index=True,
                                 how='left', suffixes=['', '_IAVG'])
     print('Shape after merging with installments data = {}'.format(merged_df.shape))
-    
+
     # Add more value counts
-    merged_df = merged_df.merge(pd.DataFrame(bureau_df['SK_ID_CURR'].value_counts()), left_on='SK_ID_CURR', 
+    merged_df = merged_df.merge(pd.DataFrame(bureau_df['SK_ID_CURR'].value_counts()), left_on='SK_ID_CURR',
                                 right_index=True, how='left', suffixes=['', '_CNT_BUREAU'])
-    merged_df = merged_df.merge(pd.DataFrame(credit_card_df['SK_ID_CURR'].value_counts()), left_on='SK_ID_CURR', 
+    merged_df = merged_df.merge(pd.DataFrame(credit_card_df['SK_ID_CURR'].value_counts()), left_on='SK_ID_CURR',
                                 right_index=True, how='left', suffixes=['', '_CNT_CRED_CARD'])
-    merged_df = merged_df.merge(pd.DataFrame(pos_cash_df['SK_ID_CURR'].value_counts()), left_on='SK_ID_CURR', 
+    merged_df = merged_df.merge(pd.DataFrame(pos_cash_df['SK_ID_CURR'].value_counts()), left_on='SK_ID_CURR',
                                 right_index=True, how='left', suffixes=['', '_CNT_POS_CASH'])
-    merged_df = merged_df.merge(pd.DataFrame(install_df['SK_ID_CURR'].value_counts()), left_on='SK_ID_CURR', 
+    merged_df = merged_df.merge(pd.DataFrame(install_df['SK_ID_CURR'].value_counts()), left_on='SK_ID_CURR',
                                 right_index=True, how='left', suffixes=['', '_CNT_INSTALL'])
     print('Shape after merging with counts data = {}'.format(merged_df.shape))
 
     return merged_df
+
 
 def process_dataframe(input_df, encoder_dict=None):
     """ Process a dataframe into a form useable by LightGBM """
@@ -146,6 +148,7 @@ def process_dataframe(input_df, encoder_dict=None):
     print('Label encoding complete.')
 
     return input_df, categorical_feats.tolist(), encoder_dict
+
 
 # Merge the datasets into a single one for training
 len_train = len(app_train_df)
@@ -168,11 +171,11 @@ non_obj_categoricals = [
     'NAME_INCOME_TYPE', 'NAME_TYPE_SUITE', 'OCCUPATION_TYPE',
     'ORGANIZATION_TYPE', 'STATUS', 'NAME_CONTRACT_STATUS_CAVG',
     'WALLSMATERIAL_MODE', 'WEEKDAY_APPR_PROCESS_START', 'NAME_CONTRACT_TYPE_BAVG',
-    'WEEKDAY_APPR_PROCESS_START_BAVG', 'NAME_CASH_LOAN_PURPOSE', 'NAME_CONTRACT_STATUS', 
-    'NAME_PAYMENT_TYPE', 'CODE_REJECT_REASON', 'NAME_TYPE_SUITE_BAVG', 
-    'NAME_CLIENT_TYPE', 'NAME_GOODS_CATEGORY', 'NAME_PORTFOLIO', 
-    'NAME_PRODUCT_TYPE', 'CHANNEL_TYPE', 'NAME_SELLER_INDUSTRY', 
-    'NAME_YIELD_GROUP', 'PRODUCT_COMBINATION', 'NAME_CONTRACT_STATUS_CCAVG' 
+    'WEEKDAY_APPR_PROCESS_START_BAVG', 'NAME_CASH_LOAN_PURPOSE', 'NAME_CONTRACT_STATUS',
+    'NAME_PAYMENT_TYPE', 'CODE_REJECT_REASON', 'NAME_TYPE_SUITE_BAVG',
+    'NAME_CLIENT_TYPE', 'NAME_GOODS_CATEGORY', 'NAME_PORTFOLIO',
+    'NAME_PRODUCT_TYPE', 'CHANNEL_TYPE', 'NAME_SELLER_INDUSTRY',
+    'NAME_YIELD_GROUP', 'PRODUCT_COMBINATION', 'NAME_CONTRACT_STATUS_CCAVG'
 ]
 categorical_feats = categorical_feats + non_obj_categoricals
 
@@ -193,15 +196,15 @@ del app_train_df
 gc.collect()
 
 lgbm_params = {
-    'boosting': 'dart',
-    'application': 'binary',
-    'learning_rate': 0.1,
+    'boosting'        : 'dart',
+    'application'     : 'binary',
+    'learning_rate'   : 0.1,
     'min_data_in_leaf': 30,
-    'num_leaves': 31,
-    'max_depth': -1,
+    'num_leaves'      : 31,
+    'max_depth'       : -1,
     'feature_fraction': 0.5,
     'scale_pos_weight': 2,
-    'drop_rate': 0.02
+    'drop_rate'       : 0.02
 }
 
 cv_results = lgbm.cv(train_set=lgbm_train,
