@@ -61,10 +61,10 @@ def one_hot_encoder(df, nan_as_category=True):
 
 
 # Preprocess application_train.csv and application_test.csv
-def application_train_test(num_rows=None, nan_as_category=True):
+def application_train_test(nan_as_category=True):
     # Read data and merge
-    df = pd.read_csv(INPUT_FILE, nrows=num_rows)
-    test_df = pd.read_csv(TEST_INPUT_FILE, nrows=num_rows)
+    df = pd.read_csv(INPUT_FILE)
+    test_df = pd.read_csv(TEST_INPUT_FILE)
     print("Train samples: {}, test samples: {}".format(len(df), len(test_df)))
     df = df.append(test_df).reset_index()
 
@@ -85,9 +85,9 @@ def application_train_test(num_rows=None, nan_as_category=True):
 
 
 # Preprocess bureau.csv and bureau_balance.csv
-def bureau_and_balance(num_rows=None, nan_as_category=True):
-    bureau = pd.read_csv(BUREAU_FILE, nrows=num_rows)
-    bb = pd.read_csv(BUREAU_BAL_FILE, nrows=num_rows)
+def bureau_and_balance(nan_as_category=True):
+    bureau = pd.read_csv(BUREAU_FILE)
+    bb = pd.read_csv(BUREAU_BAL_FILE)
     bb, bb_cat = one_hot_encoder(bb, nan_as_category)
     bureau, bureau_cat = one_hot_encoder(bureau, nan_as_category)
 
@@ -130,7 +130,7 @@ def bureau_and_balance(num_rows=None, nan_as_category=True):
     active = bureau[bureau['CREDIT_ACTIVE_Active'] == 1]
     active_agg = active.groupby('SK_ID_CURR').agg(num_aggregations)
     active_agg.columns = pd.Index(['ACT_' + e[0] + "_" + e[1].upper() for e in active_agg.columns.tolist()])
-    bureau_agg = bureau_agg.reset_index().join(active_agg.reset_index(), how='left', on='SK_ID_CURR')
+    bureau_agg = bureau_agg.join(active_agg, how='left', on='SK_ID_CURR')
     del active, active_agg
     gc.collect()
     # Bureau: Closed credits - using only numerical aggregations
@@ -144,8 +144,8 @@ def bureau_and_balance(num_rows=None, nan_as_category=True):
 
 
 # Preprocess previous_applications.csv
-def previous_applications(num_rows=None, nan_as_category=True):
-    prev = pd.read_csv(PREV_APPLICATION_FILE, nrows=num_rows)
+def previous_applications(nan_as_category=True):
+    prev = pd.read_csv(PREV_APPLICATION_FILE)
     prev, cat_cols = one_hot_encoder(prev, nan_as_category=True)
     # Days 365.243 values -> nan
     prev['DAYS_FIRST_DRAWING'].replace(365243, np.nan, inplace=True)
@@ -191,8 +191,8 @@ def previous_applications(num_rows=None, nan_as_category=True):
 
 
 # Preprocess POS_CASH_balance.csv
-def pos_cash(num_rows=None, nan_as_category=True):
-    pos = pd.read_csv(POS_CASH_FILE, nrows=num_rows)
+def pos_cash(nan_as_category=True):
+    pos = pd.read_csv(POS_CASH_FILE)
     pos, cat_cols = one_hot_encoder(pos, nan_as_category=True)
     # Features
     aggregations = {
@@ -213,8 +213,8 @@ def pos_cash(num_rows=None, nan_as_category=True):
 
 
 # Preprocess installments_payments.csv
-def installments_payments(num_rows=None, nan_as_category=True):
-    ins = pd.read_csv(INSTALLMENT_PAYMENT_FILE, nrows=num_rows)
+def installments_payments(nan_as_category=True):
+    ins = pd.read_csv(INSTALLMENT_PAYMENT_FILE)
     ins, cat_cols = one_hot_encoder(ins, nan_as_category=True)
     # Percentage and difference paid in each installment (amount paid and installment value)
     ins['PAYMENT_PERC'] = ins['AMT_PAYMENT'] / ins['AMT_INSTALMENT']
@@ -247,8 +247,8 @@ def installments_payments(num_rows=None, nan_as_category=True):
 
 
 # Preprocess credit_card_balance.csv
-def credit_card_balance(num_rows=None, nan_as_category=True):
-    cc = pd.read_csv(CREDIT_CARD_BAL_FILE, nrows=num_rows)
+def credit_card_balance(nan_as_category=True):
+    cc = pd.read_csv(CREDIT_CARD_BAL_FILE)
     cc, cat_cols = one_hot_encoder(cc, nan_as_category=True)
     # General aggregations
     cc.drop(columns=['SK_ID_PREV'], inplace=True)
@@ -348,34 +348,33 @@ def display_importances(feature_importance_df_):
 
 
 def main(debug=False):
-    num_rows = 10000 if debug else None
-    df = application_train_test(num_rows)
+    df = application_train_test()
     with timer("Process bureau and bureau_balance"):
-        bureau = bureau_and_balance(num_rows)
+        bureau = bureau_and_balance()
         print("Bureau df shape:", bureau.shape)
         df = df.join(bureau, how='left', on='SK_ID_CURR')
         del bureau
         gc.collect()
     with timer("Process previous_applications"):
-        prev = previous_applications(num_rows)
+        prev = previous_applications()
         print("Previous applications df shape:", prev.shape)
         df = df.join(prev, how='left', on='SK_ID_CURR')
         del prev
         gc.collect()
     with timer("Process POS-CASH balance"):
-        pos = pos_cash(num_rows)
+        pos = pos_cash()
         print("Pos-cash balance df shape:", pos.shape)
         df = df.join(pos, how='left', on='SK_ID_CURR')
         del pos
         gc.collect()
     with timer("Process installments payments"):
-        ins = installments_payments(num_rows)
+        ins = installments_payments()
         print("Installments payments df shape:", ins.shape)
         df = df.join(ins, how='left', on='SK_ID_CURR')
         del ins
         gc.collect()
     with timer("Process credit card balance"):
-        cc = credit_card_balance(num_rows)
+        cc = credit_card_balance()
         print("Credit card balance df shape:", cc.shape)
         df = df.join(cc, how='left', on='SK_ID_CURR')
         del cc
