@@ -12,7 +12,6 @@ import gc
 import pandas as pd
 import numpy as np
 import lightgbm as lgbm
-from sklearn.preprocessing import LabelEncoder
 import matplotlib.pyplot as plt
 from datetime import datetime
 
@@ -144,9 +143,7 @@ def process_dataframe(input_df, encoder_dict=None):
     # Label encode categoricals
     print('Label encoding categorical features...')
     categorical_feats = input_df.columns[input_df.dtypes == 'object']
-    for feat in categorical_feats:
-        encoder = LabelEncoder()
-        input_df[feat] = encoder.fit_transform(input_df[feat].fillna('NULL'))
+    input_df = pd.get_dummies(input_df, columns=categorical_feats)
     print('Label encoding complete.')
 
     return input_df, categorical_feats.tolist(), encoder_dict
