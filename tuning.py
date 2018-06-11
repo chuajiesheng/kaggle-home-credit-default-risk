@@ -663,7 +663,10 @@ param_grid = {
 
 param_table = expand_grid.expand_grid(param_grid)
 
+#
 # Find the optimal number of trees for this learning rate
+# n_estimators = 334
+#
 param_grid, _ = fit_models.fit_xgboost(
     param_grid,
     param_table,
@@ -678,6 +681,8 @@ param_grid, _ = fit_models.fit_xgboost(
 
 #
 # Tune max_depth and min_child_weight
+# min_child_weight = 6
+# max_depth = 5
 #
 
 param_grid['max_depth'] = range(3, 10, 2)
@@ -724,6 +729,7 @@ param_grid, _ = fit_models.fit_xgboost(
 
 #
 # Tune gamma
+# gamma = 1.3
 #
 
 param_grid['gamma'] = [x / 10.0 for x in range(0, 15)]
@@ -743,6 +749,8 @@ param_grid, _ = fit_models.fit_xgboost(
 
 #
 # Tune subsample and colsample_bytree
+# subsample = 0.8
+# colsample_bytree = 0.8
 #
 
 # Coarse search
@@ -792,6 +800,7 @@ param_grid, _ = fit_models.fit_xgboost(
 
 #
 # Tune reg_lambda
+# reg_lambda = 1.0
 #
 param_grid['reg_lambda'] = [0, 1e-5, 0.001, 0.01, 0.05, 0.1, 0.5, 1, 3, 5, 10, 100]
 
@@ -810,6 +819,7 @@ param_grid, _ = fit_models.fit_xgboost(
 
 #
 # Tune reg_alpha
+# reg_alpha = 5.0
 #
 param_grid['reg_alpha'] = [0, 1e-5, 0.001, 0.005, 0.01, 0.05, 0.1, 1, 3, 5, 10, 100]
 
