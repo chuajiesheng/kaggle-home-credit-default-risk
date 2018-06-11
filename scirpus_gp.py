@@ -1,9 +1,14 @@
-import gc
 import numpy as np
 import pandas as pd
 from sklearn.model_selection import KFold, StratifiedKFold
 from sklearn.preprocessing import StandardScaler, LabelEncoder
 from sklearn.metrics import roc_auc_score
+from lightgbm import LGBMClassifier
+from sklearn.metrics import roc_auc_score, log_loss
+from sklearn.model_selection import StratifiedKFold
+import gc
+import os
+from datetime import datetime
 
 
 def add_noise(series, noise_level):
@@ -271,7 +276,8 @@ def UseGPFeatures(data):
     v["i211"] = np.tanh((((((data["NAME_CONTRACT_TYPE_Consumer_loans"]) * (data["cc_bal_AMT_PAYMENT_TOTAL_CURRENT"]))) + ((((((data["cc_bal_AMT_PAYMENT_TOTAL_CURRENT"]) + (np.minimum(((((data["AMT_CREDIT_y"]) / 2.0))), ((data["AMT_CREDIT_y"]))))) / 2.0)) * ((((data["NAME_CONTRACT_TYPE_Consumer_loans"]) > (0.339286)) * 1.))))) / 2.0))
     v["i212"] = np.tanh(np.where(((data["NAME_PORTFOLIO_Cards"]) + (((0.036585) * 2.0))) > 0, ((((((data["NAME_GOODS_CATEGORY_Insurance"]) < (data["cc_bal_AMT_DRAWINGS_ATM_CURRENT"])) * 1.)) < ((((data["cc_bal_AMT_DRAWINGS_ATM_CURRENT"]) > (data["cc_bal_AMT_PAYMENT_CURRENT"])) * 1.))) * 1.), data["cc_bal_AMT_DRAWINGS_ATM_CURRENT"]))
     v["i213"] = np.tanh(((data["cc_bal_CNT_DRAWINGS_CURRENT"]) * (((((data["NAME_GOODS_CATEGORY_Photo___Cinema_Equipment"]) * (data["NAME_GOODS_CATEGORY_Photo___Cinema_Equipment"]))) - (np.minimum(((data["cc_bal_AMT_PAYMENT_CURRENT"])), ((((11.714300) * ((((data["NAME_GOODS_CATEGORY_Direct_Sales"]) > (data["cc_bal_CNT_DRAWINGS_CURRENT"])) * 1.)))))))))))
-    v["i214"] = np.tanh(np.where(np.tanh((data["CODE_REJECT_REASON_CLIENT"])) > 0, data["cc_bal_AMT_DRAWINGS_ATM_CURRENT"],((np.where(data["cc_bal_AMT_DRAWINGS_ATM_CURRENT"] > 0, ((((data["NAME_GOODS_CATEGORY_Direct_Sales"]) / 2.0)) / 2.0), ((np.minimum(((data["NAME_GOODS_CATEGORY_Photo___Cinema_Equipment"])), ((data["NAME_PAYMENT_TYPE_Cash_through_the_bank"])))) / 2.0))) / 2.0)))
+    v["i214"] = np.tanh(np.where(np.tanh((data["CODE_REJECT_REASON_CLIENT"])) > 0, data["cc_bal_AMT_DRAWINGS_ATM_CURRENT"],
+                                 ((np.where(data["cc_bal_AMT_DRAWINGS_ATM_CURRENT"] > 0, ((((data["NAME_GOODS_CATEGORY_Direct_Sales"]) / 2.0)) / 2.0), ((np.minimum(((data["NAME_GOODS_CATEGORY_Photo___Cinema_Equipment"])), ((data["NAME_PAYMENT_TYPE_Cash_through_the_bank"])))) / 2.0))) / 2.0)))
     v["i215"] = np.tanh(((((((0.062500) - (((data["FLAG_EMAIL"]) * ((-1.0 * ((((data["FLAG_DOCUMENT_4"]) + (data["NAME_GOODS_CATEGORY_Direct_Sales"])))))))))) - (data["NAME_GOODS_CATEGORY_Weapon"]))) - (((data["FLAG_EMAIL"]) * (0.062500)))))
     v["i216"] = np.tanh((-1.0 * ((((((data["cc_bal_cc_bal_status__Sent_proposal"]) + (data["FLAG_CONT_MOBILE"]))) * (((0.323944) + (((-1.0) * (data["NAME_YIELD_GROUP_XNA"]))))))))))
     v["i217"] = np.tanh((((((1.857140) < (data["avg_buro_buro_bal_status_2"])) * 1.)) - (np.maximum((((((0.031746) < (((np.maximum(((data["cc_bal_SK_DPD_DEF"])), ((data["avg_buro_buro_bal_status_2"])))) * 2.0))) * 1.))), ((data["cc_bal_cc_bal_status__Sent_proposal"]))))))
@@ -324,7 +330,8 @@ def UseGPFeatures(data):
     v["i264"] = np.tanh(np.minimum((((-1.0 * ((((np.maximum(((data["NAME_SELLER_INDUSTRY_Tourism"])), (((((14.800000) < (data["avg_buro_buro_bal_status_4"])) * 1.))))) * 2.0)))))), (((-1.0 * ((np.maximum(((data["NAME_GOODS_CATEGORY_Weapon"])), (((((data["avg_buro_buro_bal_status_4"]) > (0.062500)) * 1.)))))))))))
     v["i265"] = np.tanh(((data["SK_DPD"]) * (np.where((((data["SK_DPD"]) < (data["avg_buro_buro_bal_status_4"])) * 1.) > 0, (-1.0 * ((data["SK_DPD"]))), ((data["avg_buro_buro_bal_status_4"]) + (((-1.0) * (((data["NAME_CASH_LOAN_PURPOSE_Business_development"]) * 2.0)))))))))
     v["i266"] = np.tanh((-1.0 * ((((data["NAME_CASH_LOAN_PURPOSE_Business_development"]) * (np.where(data["avg_buro_buro_bal_status_4"] > 0, ((0.576923) * 2.0), data["WEEKDAY_APPR_PROCESS_START_WEDNESDAY"])))))))
-    v["i267"] = np.tanh(np.minimum(((((data["NAME_CASH_LOAN_PURPOSE_Business_development"]) * (np.where(data["avg_buro_buro_bal_status_4"] > 0, data["CODE_REJECT_REASON_SYSTEM"], data["NAME_GOODS_CATEGORY_Insurance"]))))),((((data["avg_buro_buro_bal_status_4"]) - (np.where(data["avg_buro_buro_bal_status_4"] > 0, ((data["NAME_GOODS_CATEGORY_Direct_Sales"]) * 2.0), data["NAME_GOODS_CATEGORY_Fitness"])))))))
+    v["i267"] = np.tanh(np.minimum(((((data["NAME_CASH_LOAN_PURPOSE_Business_development"]) * (np.where(data["avg_buro_buro_bal_status_4"] > 0, data["CODE_REJECT_REASON_SYSTEM"], data["NAME_GOODS_CATEGORY_Insurance"]))))),
+                                   ((((data["avg_buro_buro_bal_status_4"]) - (np.where(data["avg_buro_buro_bal_status_4"] > 0, ((data["NAME_GOODS_CATEGORY_Direct_Sales"]) * 2.0), data["NAME_GOODS_CATEGORY_Fitness"])))))))
     v["i268"] = np.tanh(np.where(((data["FLAG_DOCUMENT_4"]) + (np.tanh((((data["cc_bal_SK_DPD_DEF"]) * 2.0))))) > 0, -3.0, (((data["cc_bal_SK_DPD"]) > (np.maximum(((11.714300)), ((11.714300))))) * 1.)))
     v["i269"] = np.tanh(((np.maximum(((3.0)), (((9.0))))) * (((np.maximum(((data["cc_bal_SK_DPD_DEF"])), ((((((4.0)) < (np.maximum(((((data["CHANNEL_TYPE_AP___Cash_loan_"]) / 2.0))), ((data["CHANNEL_TYPE_AP___Cash_loan_"]))))) * 1.))))) * (data["CHANNEL_TYPE_AP___Cash_loan_"])))))
     v["i270"] = np.tanh(np.tanh((((((((np.tanh((data["avg_buro_buro_bal_status_4"]))) * (data["CHANNEL_TYPE_AP___Cash_loan_"]))) * (11.714300))) * (np.maximum(((data["CHANNEL_TYPE_AP___Cash_loan_"])), ((((data["NAME_CASH_LOAN_PURPOSE_Business_development"]) * 2.0)))))))))
@@ -335,7 +342,8 @@ def UseGPFeatures(data):
     v["i275"] = np.tanh(((data["cc_bal_SK_DPD_DEF"]) + (((((np.where(((data["FLAG_DOCUMENT_10"]) - (data["cc_bal_SK_DPD_DEF"])) > 0, data["cu__currency_3"], data["cc_bal_SK_DPD_DEF"])) - ((((data["cu__currency_3"]) > (data["cc_bal_SK_DPD_DEF"])) * 1.)))) / 2.0))))
     v["i276"] = np.tanh((-1.0 * (((((11.714300) < (((np.maximum(((((14.800000) / 2.0))), (((((np.maximum(((0.036585)), ((2.0)))) + (data["NAME_CASH_LOAN_PURPOSE_Business_development"])) / 2.0))))) + (data["avg_buro_buro_bal_status_4"])))) * 1.)))))
     v["i277"] = np.tanh(np.maximum(((0.031746)), (((((0.031746) < (((data["NAME_YIELD_GROUP_XNA"]) * (np.minimum(((data["cc_bal_SK_DPD_DEF"])), ((np.where(0.416667 > 0, 0.031746, data["NAME_PORTFOLIO_XNA"])))))))) * 1.)))))
-    v["i278"] = np.tanh((((np.maximum(((data["NAME_CASH_LOAN_PURPOSE_Business_development"])), ((data["cu__currency_3"])))) + (((data["NAME_CASH_LOAN_PURPOSE_Business_development"]) * (((np.where(data["cu__currency_3"] > 0, data["cu__currency_3"], data["NAME_GOODS_CATEGORY_Fitness"])) * (((data["cu__currency_3"]) + (data["NAME_CASH_LOAN_PURPOSE_Business_development"])))))))) / 2.0))
+    v["i278"] = np.tanh((((np.maximum(((data["NAME_CASH_LOAN_PURPOSE_Business_development"])), ((data["cu__currency_3"])))) + (
+        ((data["NAME_CASH_LOAN_PURPOSE_Business_development"]) * (((np.where(data["cu__currency_3"] > 0, data["cu__currency_3"], data["NAME_GOODS_CATEGORY_Fitness"])) * (((data["cu__currency_3"]) + (data["NAME_CASH_LOAN_PURPOSE_Business_development"])))))))) / 2.0))
     v["i279"] = np.tanh(((np.where(((((((data["NAME_GOODS_CATEGORY_Sport_and_Leisure"]) + (data["NAME_PORTFOLIO_XNA"])) / 2.0)) + (data["REG_REGION_NOT_WORK_REGION"])) / 2.0) > 0, 0.680000, data["NAME_GOODS_CATEGORY_Sport_and_Leisure"])) * (((data["NAME_GOODS_CATEGORY_Sport_and_Leisure"]) * ((((-1.0 * ((1.857140)))) * 2.0))))))
     v["i280"] = np.tanh(((((data["CHANNEL_TYPE_Stone"]) * 2.0)) * ((((0.062500) + (((((np.minimum(((data["CHANNEL_TYPE_Stone"])), ((data["NAME_CASH_LOAN_PURPOSE_Business_development"])))) * (np.tanh((np.tanh((data["NAME_CONTRACT_STATUS_Approved"]))))))) / 2.0))) / 2.0))))
     v["i281"] = np.tanh(np.where(data["FLAG_DOCUMENT_4"] > 0, -3.0, ((((np.where(data["SK_ID_PREV_x"] > 0, ((((((-3.0) + (data["SK_ID_PREV_x"])) / 2.0)) > (2.235290)) * 1.), data["NAME_GOODS_CATEGORY_Direct_Sales"])) * 2.0)) * 2.0)))
@@ -384,7 +392,8 @@ def UseGPFeatures(data):
     v["i324"] = np.tanh((((((data["NAME_CASH_LOAN_PURPOSE_Furniture"]) + (0.339286)) / 2.0)) * ((-1.0 * (((((np.minimum((((((((0.062500) < (data["te_WALLSMATERIAL_MODE"])) * 1.)) + (data["NAME_CASH_LOAN_PURPOSE_Furniture"])))), ((data["WALLSMATERIAL_MODE"])))) + (data["te_HOUSETYPE_MODE"])) / 2.0)))))))
     v["i325"] = np.tanh(((((data["CNT_INSTALMENT"]) * (((np.where(np.tanh((data["ty__Credit_card"])) > 0, data["NAME_GOODS_CATEGORY_Direct_Sales"], (-1.0 * ((data["inst_AMT_PAYMENT"]))))) + (((data["inst_AMT_PAYMENT"]) * (data["ty__Credit_card"]))))))) / 2.0))
     v["i326"] = np.tanh(((((((((-1.0 * ((np.minimum(((data["CNT_INSTALMENT"])), ((data["CNT_INSTALMENT"]))))))) * (((data["CNT_INSTALMENT"]) / 2.0)))) + (data["inst_AMT_PAYMENT"])) / 2.0)) * (((data["ty__Consumer_credit"]) + (data["ty__Credit_card"])))))
-    v["i327"] = np.tanh(np.where(data["CODE_REJECT_REASON_CLIENT"] > 0, data["PRODUCT_COMBINATION_POS_industry_without_interest"],np.where((((data["inst_AMT_PAYMENT"]) < ((((((data["PRODUCT_COMBINATION_POS_industry_without_interest"]) > (1.0)) * 1.)) / 2.0))) * 1.) > 0, (-1.0 * ((data["PRODUCT_COMBINATION_POS_industry_without_interest"]))), data["PRODUCT_COMBINATION_POS_industry_without_interest"])))
+    v["i327"] = np.tanh(np.where(data["CODE_REJECT_REASON_CLIENT"] > 0, data["PRODUCT_COMBINATION_POS_industry_without_interest"],
+                                 np.where((((data["inst_AMT_PAYMENT"]) < ((((((data["PRODUCT_COMBINATION_POS_industry_without_interest"]) > (1.0)) * 1.)) / 2.0))) * 1.) > 0, (-1.0 * ((data["PRODUCT_COMBINATION_POS_industry_without_interest"]))), data["PRODUCT_COMBINATION_POS_industry_without_interest"])))
     v["i328"] = np.tanh(((np.where(data["inst_AMT_INSTALMENT"] > 0, ((np.maximum(((data["NAME_CONTRACT_STATUS_Unused_offer"])), ((data["ty__Consumer_credit"])))) / 2.0), np.minimum(((0.036585)), (((((data["NAME_CONTRACT_STATUS_Unused_offer"]) + (data["ty__Consumer_credit"])) / 2.0)))))) / 2.0))
     v["i329"] = np.tanh((-1.0 * ((((((((((((0.686567) < (data["te_NAME_HOUSING_TYPE"])) * 1.)) > (((((data["te_NAME_HOUSING_TYPE"]) / 2.0)) + ((((((3.0) > (data["FLAG_DOCUMENT_10"])) * 1.)) / 2.0))))) * 1.)) * 2.0)) * 2.0)))))
     v["i330"] = np.tanh(np.where(data["te_DAYS_ID_PUBLISH"] > 0, (((((((1.220590) - (2.0))) / 2.0)) > (data["AMT_CREDIT_SUM"])) * 1.), (((data["AMT_CREDIT_SUM"]) > (np.maximum(((0.323944)), ((data["NAME_TYPE_SUITE_Other_B"]))))) * 1.)))
@@ -392,7 +401,8 @@ def UseGPFeatures(data):
     v["i332"] = np.tanh((((data["inst_AMT_PAYMENT"]) < ((-1.0 * (((((((0.043478) / 2.0)) + (((np.maximum(((3.0)), ((((data["NAME_TYPE_SUITE_Other_B"]) - (1.857140)))))) - (data["NAME_TYPE_SUITE_Other_B"])))) / 2.0)))))) * 1.))
     v["i333"] = np.tanh(((np.minimum((((((((((8.0)) - (data["inst_AMT_PAYMENT"]))) - (((data["NAME_CASH_LOAN_PURPOSE_Furniture"]) / 2.0)))) * 2.0))), ((((((((data["NAME_CASH_LOAN_PURPOSE_Furniture"]) / 2.0)) * 2.0)) / 2.0))))) * (3.0)))
     v["i334"] = np.tanh(((((np.where(data["NAME_GOODS_CATEGORY_Insurance"] > 0, 3.526320, ((np.maximum(((np.maximum(((data["cu__currency_3"])), ((data["FLAG_DOCUMENT_13"]))))), ((-2.0)))) * 2.0))) * (((data["cu__currency_3"]) * 2.0)))) * 2.0))
-    v["i335"] = np.tanh(((np.where(data["cc_bal_cc_bal_status__Sent_proposal"] > 0, np.minimum(((np.maximum(((data["NAME_CASH_LOAN_PURPOSE_Refusal_to_name_the_goal"])), ((data["Amortized_debt"]))))), (((-1.0 * ((data["NAME_CASH_LOAN_PURPOSE_Buying_a_used_car"])))))),((((((-1.0 * ((data["cc_bal_cc_bal_status__Sent_proposal"])))) / 2.0)) < (data["NAME_CASH_LOAN_PURPOSE_Buying_a_used_car"])) * 1.))) * 2.0))
+    v["i335"] = np.tanh(((np.where(data["cc_bal_cc_bal_status__Sent_proposal"] > 0, np.minimum(((np.maximum(((data["NAME_CASH_LOAN_PURPOSE_Refusal_to_name_the_goal"])), ((data["Amortized_debt"]))))), (((-1.0 * ((data["NAME_CASH_LOAN_PURPOSE_Buying_a_used_car"])))))),
+                                   ((((((-1.0 * ((data["cc_bal_cc_bal_status__Sent_proposal"])))) / 2.0)) < (data["NAME_CASH_LOAN_PURPOSE_Buying_a_used_car"])) * 1.))) * 2.0))
     v["i336"] = np.tanh(((((((((data["Amortized_debt"]) + (0.031746)) / 2.0)) + ((((0.416667) + (data["Amortized_debt"])) / 2.0))) / 2.0)) - ((((data["Amortized_debt"]) > (data["NAME_CASH_LOAN_PURPOSE_Refusal_to_name_the_goal"])) * 1.))))
     v["i337"] = np.tanh(np.minimum(((data["NAME_CASH_LOAN_PURPOSE_Refusal_to_name_the_goal"])), (((((7.0)) + (((14.800000) - (np.maximum(((np.maximum(((np.maximum(((data["NAME_CASH_LOAN_PURPOSE_Business_development"])), ((data["NAME_GOODS_CATEGORY_Education"]))))), ((14.800000))))), ((data["NAME_CASH_LOAN_PURPOSE_Furniture"])))))))))))
     v["i338"] = np.tanh(np.where(data["cc_bal_cc_bal_status__Sent_proposal"] > 0, ((data["NAME_CONTRACT_STATUS_Unused_offer"]) * (data["cc_bal_cc_bal_status__Sent_proposal"])), (-1.0 * (((((((data["CODE_REJECT_REASON_CLIENT"]) * (data["CODE_REJECT_REASON_CLIENT"]))) < (((data["NAME_CONTRACT_STATUS_Unused_offer"]) * 2.0))) * 1.))))))
@@ -432,7 +442,8 @@ def UseGPFeatures(data):
     v["i372"] = np.tanh((((((data["cc_bal_SK_DPD_DEF"]) < (np.minimum(((data["NAME_YIELD_GROUP_middle"])), ((((((data["NAME_GOODS_CATEGORY_Insurance"]) * (data["NAME_YIELD_GROUP_middle"]))) * 2.0)))))) * 1.)) * (data["NAME_YIELD_GROUP_middle"])))
     v["i373"] = np.tanh((-1.0 * ((((np.minimum(((np.tanh(((((((np.tanh((0.339286))) > (data["NAME_YIELD_GROUP_middle"])) * 1.)) / 2.0))))), (((((data["NAME_YIELD_GROUP_middle"]) > (data["NAME_GOODS_CATEGORY_Photo___Cinema_Equipment"])) * 1.))))) / 2.0)))))
     v["i374"] = np.tanh(np.where((((0.680000) < (np.minimum((((((data["NAME_YIELD_GROUP_middle"]) + (0.0)) / 2.0))), ((data["AMT_CREDIT_SUM"]))))) * 1.) > 0, data["AMT_CREDIT_SUM"], ((np.minimum(((data["AMT_CREDIT_SUM"])), ((data["AMT_CREDIT_SUM"])))) * (data["NAME_CASH_LOAN_PURPOSE_Buying_a_holiday_home___land"]))))
-    v["i375"] = np.tanh(((np.minimum(((((np.where(data["NAME_CASH_LOAN_PURPOSE_Gasification___water_supply"] > 0, ((data["NAME_CASH_LOAN_PURPOSE_Gasification___water_supply"]) - (14.800000)), ((data["NAME_CASH_LOAN_PURPOSE_Gasification___water_supply"]) * (data["NAME_GOODS_CATEGORY_Computers"])))) * 2.0))),((((data["NAME_CASH_LOAN_PURPOSE_Gasification___water_supply"]) / 2.0))))) * 2.0))
+    v["i375"] = np.tanh(((np.minimum(((((np.where(data["NAME_CASH_LOAN_PURPOSE_Gasification___water_supply"] > 0, ((data["NAME_CASH_LOAN_PURPOSE_Gasification___water_supply"]) - (14.800000)), ((data["NAME_CASH_LOAN_PURPOSE_Gasification___water_supply"]) * (data["NAME_GOODS_CATEGORY_Computers"])))) * 2.0))),
+                                     ((((data["NAME_CASH_LOAN_PURPOSE_Gasification___water_supply"]) / 2.0))))) * 2.0))
     v["i376"] = np.tanh(np.where(data["te_NAME_HOUSING_TYPE"] > 0, 0.323944, (((((-1.0 * (((((data["te_NAME_HOUSING_TYPE"]) < (np.tanh((-2.0)))) * 1.))))) * 2.0)) * 2.0)))
     v["i377"] = np.tanh((((-1.0 * ((data["NAME_CASH_LOAN_PURPOSE_Buying_a_holiday_home___land"])))) * (np.where(data["NAME_YIELD_GROUP_middle"] > 0, np.minimum(((-2.0)), ((((np.tanh((2.235290))) / 2.0)))), (((0.686567) + (data["NAME_YIELD_GROUP_middle"])) / 2.0)))))
     v["i378"] = np.tanh((-1.0 * ((((((data["inst_AMT_PAYMENT"]) * (0.031746))) - ((((0.416667) < (np.where(data["te_NAME_HOUSING_TYPE"] > 0, data["inst_AMT_PAYMENT"], ((data["AMT_CREDIT_SUM"]) * (data["inst_AMT_PAYMENT"]))))) * 1.)))))))
@@ -447,11 +458,14 @@ def UseGPFeatures(data):
     v["i387"] = np.tanh(np.minimum((((((data["AMT_REQ_CREDIT_BUREAU_YEAR"]) > ((-1.0 * ((data["NAME_CASH_LOAN_PURPOSE_Buying_a_holiday_home___land"]))))) * 1.))), ((((0.576923) - (np.tanh((np.maximum(((np.tanh(((((data["AMT_REQ_CREDIT_BUREAU_YEAR"]) + (0.416667)) / 2.0))))), ((data["AMT_REQ_CREDIT_BUREAU_YEAR"])))))))))))
     v["i388"] = np.tanh(((data["ca__Sold"]) * (np.maximum((((-1.0 * ((data["ca__Sold"]))))), (((((((data["NAME_CASH_LOAN_PURPOSE_Business_development"]) < (data["FLAG_DOCUMENT_10"])) * 1.)) + (((((data["ca__Sold"]) - (((11.714300) / 2.0)))) * 2.0)))))))))
     v["i389"] = np.tanh((-1.0 * ((((np.minimum((((((data["DAYS_CREDIT"]) + (2.0)) / 2.0))), ((((data["NAME_CASH_LOAN_PURPOSE_Buying_a_holiday_home___land"]) * (data["DAYS_CREDIT"])))))) * (np.where(data["NAME_CASH_LOAN_PURPOSE_Buying_a_holiday_home___land"] > 0, 2.0, data["DAYS_CREDIT"])))))))
-    v["i390"] = np.tanh(((data["AMT_CREDIT_SUM_DEBT"]) * (((data["AMT_CREDIT_SUM_DEBT"]) * (np.where(data["NAME_CASH_LOAN_PURPOSE_Buying_a_holiday_home___land"] > 0, data["AMT_CREDIT_SUM_DEBT"], np.tanh((np.where(data["AMT_CREDIT_SUM_DEBT"] > 0, data["NAME_GOODS_CATEGORY_Insurance"], np.minimum(((data["DAYS_LAST_DUE_1ST_VERSION"])), ((data["NAME_GOODS_CATEGORY_Insurance"]))))))))))))
+    v["i390"] = np.tanh(((data["AMT_CREDIT_SUM_DEBT"]) * (
+        ((data["AMT_CREDIT_SUM_DEBT"]) * (np.where(data["NAME_CASH_LOAN_PURPOSE_Buying_a_holiday_home___land"] > 0, data["AMT_CREDIT_SUM_DEBT"], np.tanh((np.where(data["AMT_CREDIT_SUM_DEBT"] > 0, data["NAME_GOODS_CATEGORY_Insurance"], np.minimum(((data["DAYS_LAST_DUE_1ST_VERSION"])), ((data["NAME_GOODS_CATEGORY_Insurance"]))))))))))))
     v["i391"] = np.tanh((((((((((((((data["AMT_CREDIT_MAX_OVERDUE"]) > (np.where(data["AMT_CREDIT_MAX_OVERDUE"] > 0, 0.062500, data["FLAG_DOCUMENT_4"]))) * 1.)) * 2.0)) + (np.tanh((data["AMT_CREDIT_MAX_OVERDUE"]))))) + (data["FLAG_DOCUMENT_4"]))) * 2.0)) * 2.0))
     v["i392"] = np.tanh(np.minimum(((((data["FLAG_DOCUMENT_15"]) * (data["NAME_CASH_LOAN_PURPOSE_Business_development"])))), ((((data["FLAG_EMAIL"]) * ((((((data["DAYS_LAST_DUE_1ST_VERSION"]) > (0.680000)) * 1.)) * (((data["FLAG_DOCUMENT_15"]) * (data["FLAG_EMAIL"]))))))))))
-    v["i393"] = np.tanh(np.minimum(((((data["cc_bal_CNT_INSTALMENT_MATURE_CUM"]) * (((data["NAME_CASH_LOAN_PURPOSE_Buying_a_holiday_home___land"]) + (data["NAME_GOODS_CATEGORY_Insurance"])))))),(((-1.0 * (((((data["cu__currency_4"]) + ((((data["cc_bal_CNT_INSTALMENT_MATURE_CUM"]) > (((data["cc_bal_CNT_INSTALMENT_MATURE_CUM"]) * (data["cc_bal_CNT_INSTALMENT_MATURE_CUM"])))) * 1.))) / 2.0))))))))
-    v["i394"] = np.tanh(((((((np.minimum(((data["NAME_CASH_LOAN_PURPOSE_Buying_a_holiday_home___land"])), ((data["AMT_REQ_CREDIT_BUREAU_YEAR"])))) * (((0.043478) * 2.0)))) - (data["NAME_CASH_LOAN_PURPOSE_Buying_a_holiday_home___land"]))) - (((data["NAME_CASH_LOAN_PURPOSE_Buying_a_holiday_home___land"]) * (((data["NAME_CASH_LOAN_PURPOSE_Buying_a_holiday_home___land"]) * (data["AMT_REQ_CREDIT_BUREAU_YEAR"])))))))
+    v["i393"] = np.tanh(np.minimum(((((data["cc_bal_CNT_INSTALMENT_MATURE_CUM"]) * (((data["NAME_CASH_LOAN_PURPOSE_Buying_a_holiday_home___land"]) + (data["NAME_GOODS_CATEGORY_Insurance"])))))),
+                                   (((-1.0 * (((((data["cu__currency_4"]) + ((((data["cc_bal_CNT_INSTALMENT_MATURE_CUM"]) > (((data["cc_bal_CNT_INSTALMENT_MATURE_CUM"]) * (data["cc_bal_CNT_INSTALMENT_MATURE_CUM"])))) * 1.))) / 2.0))))))))
+    v["i394"] = np.tanh(((((((np.minimum(((data["NAME_CASH_LOAN_PURPOSE_Buying_a_holiday_home___land"])), ((data["AMT_REQ_CREDIT_BUREAU_YEAR"])))) * (((0.043478) * 2.0)))) - (data["NAME_CASH_LOAN_PURPOSE_Buying_a_holiday_home___land"]))) - (
+        ((data["NAME_CASH_LOAN_PURPOSE_Buying_a_holiday_home___land"]) * (((data["NAME_CASH_LOAN_PURPOSE_Buying_a_holiday_home___land"]) * (data["AMT_REQ_CREDIT_BUREAU_YEAR"])))))))
     v["i395"] = np.tanh(((np.where(data["cc_bal_SK_DPD_DEF"] > 0, data["cc_bal_SK_DPD"], data["ty__Loan_for_working_capital_replenishment"])) * ((-1.0 * ((((0.043478) - ((((14.800000) > ((((data["ty__Loan_for_working_capital_replenishment"]) + (2.0)) / 2.0))) * 1.)))))))))
     v["i396"] = np.tanh(((0.043478) + ((-1.0 * ((np.maximum((((((14.800000) < (data["ty__Loan_for_working_capital_replenishment"])) * 1.))), ((np.where(data["ty__Loan_for_working_capital_replenishment"] > 0, ((2.235290) * (data["cc_bal_SK_DPD"])), data["NAME_GOODS_CATEGORY_Insurance"]))))))))))
     v["i397"] = np.tanh((((9.0)) * ((((((0.680000) < (data["cc_bal_SK_DPD_DEF"])) * 1.)) + ((((data["NAME_CASH_LOAN_PURPOSE_Hobby"]) > ((((data["cc_bal_SK_DPD_DEF"]) + (0.0)) / 2.0))) * 1.))))))
@@ -507,14 +521,16 @@ def UseGPFeatures(data):
     v["i447"] = np.tanh(((np.minimum(((0.680000)), (((-1.0 * ((np.where((-1.0 * ((data["NAME_SELLER_INDUSTRY_Connectivity"]))) > 0, (((data["CNT_PAYMENT"]) > (2.235290)) * 1.), (((0.043478) < (-2.0)) * 1.))))))))) * 2.0))
     v["i448"] = np.tanh(np.where((((data["PRODUCT_COMBINATION_Cash_Street__low"]) > (np.tanh(((6.05926561355590820))))) * 1.) > 0, (((data["AMT_APPLICATION"]) + (data["AMT_CREDIT_y"])) / 2.0), np.minimum((((-1.0 * ((data["PRODUCT_COMBINATION_Cash_Street__low"]))))), ((((data["PRODUCT_COMBINATION_Cash_Street__low"]) * (data["CNT_INSTALMENT"])))))))
     v["i449"] = np.tanh(((np.where((((2.235290) > (data["CNT_INSTALMENT_FUTURE"])) * 1.) > 0, (((data["CNT_PAYMENT"]) > (3.0)) * 1.), (((data["CNT_INSTALMENT_FUTURE"]) > (3.0)) * 1.))) * 2.0))
-    v["i450"] = np.tanh(np.minimum(((((data["te_FLAG_DOCUMENT_19"]) * ((((data["NAME_CASH_LOAN_PURPOSE_Business_development"]) < (data["PRODUCT_COMBINATION_Cash_Street__low"])) * 1.))))), ((((((data["te_FLAG_DOCUMENT_19"]) * (np.maximum(((data["PRODUCT_COMBINATION_Cash_Street__low"])), ((data["te_FLAG_DOCUMENT_19"])))))) * (data["NAME_CASH_LOAN_PURPOSE_XNA"]))))))
+    v["i450"] = np.tanh(
+        np.minimum(((((data["te_FLAG_DOCUMENT_19"]) * ((((data["NAME_CASH_LOAN_PURPOSE_Business_development"]) < (data["PRODUCT_COMBINATION_Cash_Street__low"])) * 1.))))), ((((((data["te_FLAG_DOCUMENT_19"]) * (np.maximum(((data["PRODUCT_COMBINATION_Cash_Street__low"])), ((data["te_FLAG_DOCUMENT_19"])))))) * (data["NAME_CASH_LOAN_PURPOSE_XNA"]))))))
     v["i451"] = np.tanh(((((((np.maximum(((data["cc_bal_AMT_DRAWINGS_CURRENT"])), (((-1.0 * ((0.043478))))))) * (((1.220590) - (data["NAME_CASH_LOAN_PURPOSE_Education"]))))) + (((data["te_FLAG_DOCUMENT_19"]) / 2.0)))) * (data["NAME_CASH_LOAN_PURPOSE_Education"])))
     v["i452"] = np.tanh(np.minimum(((((((((2.0)) + (0.036585))) > ((((data["cc_bal_AMT_BALANCE"]) + (data["te_FLAG_DOCUMENT_19"])) / 2.0))) * 1.))), (((((data["cc_bal_AMT_BALANCE"]) > ((((2.0)) + (data["NAME_CASH_LOAN_PURPOSE_Business_development"])))) * 1.)))))
     v["i453"] = np.tanh((((0.062500) < (np.where(((data["DAYS_LAST_DUE_1ST_VERSION"]) - (0.323944)) > 0, ((((data["DAYS_LAST_DUE_1ST_VERSION"]) - (0.339286))) * ((((data["NAME_SELLER_INDUSTRY_Connectivity"]) > (data["DAYS_LAST_DUE_1ST_VERSION"])) * 1.))), data["cc_bal_AMT_PAYMENT_TOTAL_CURRENT"]))) * 1.))
     v["i454"] = np.tanh(np.tanh((np.tanh((((data["DAYS_FIRST_DRAWING"]) * (np.tanh(((((((data["DAYS_FIRST_DRAWING"]) < (((((-1.0 * ((data["DAYS_FIRST_DRAWING"])))) < (data["inst_NUM_INSTALMENT_NUMBER"])) * 1.))) * 1.)) * (data["inst_NUM_INSTALMENT_NUMBER"])))))))))))
     v["i455"] = np.tanh(((((((((data["cc_bal_AMT_DRAWINGS_CURRENT"]) > ((((data["te_FLAG_DOCUMENT_19"]) + (data["inst_AMT_PAYMENT"])) / 2.0))) * 1.)) < (data["cc_bal_AMT_DRAWINGS_CURRENT"])) * 1.)) * (((((data["inst_AMT_PAYMENT"]) * 2.0)) * ((-1.0 * ((1.857140))))))))
     v["i456"] = np.tanh(np.where(data["inst_SK_ID_PREV"] > 0, (((np.where(data["inst_SK_ID_PREV"] > 0, 3.0, 1.105260)) < (data["inst_SK_ID_PREV"])) * 1.), ((((((data["cc_bal_AMT_PAYMENT_CURRENT"]) * 2.0)) * 2.0)) * 2.0)))
-    v["i457"] = np.tanh(np.where((((data["ty__Loan_for_working_capital_replenishment"]) < (data["FLAG_DOCUMENT_10"])) * 1.) > 0, np.where(data["NAME_PORTFOLIO_Cards"] > 0, (-1.0 * ((data["CHANNEL_TYPE_Car_dealer"]))), data["cc_bal_AMT_DRAWINGS_CURRENT"]), np.maximum(((((data["ty__Loan_for_working_capital_replenishment"]) * 2.0))), ((data["cc_bal_AMT_DRAWINGS_CURRENT"])))))
+    v["i457"] = np.tanh(
+        np.where((((data["ty__Loan_for_working_capital_replenishment"]) < (data["FLAG_DOCUMENT_10"])) * 1.) > 0, np.where(data["NAME_PORTFOLIO_Cards"] > 0, (-1.0 * ((data["CHANNEL_TYPE_Car_dealer"]))), data["cc_bal_AMT_DRAWINGS_CURRENT"]), np.maximum(((((data["ty__Loan_for_working_capital_replenishment"]) * 2.0))), ((data["cc_bal_AMT_DRAWINGS_CURRENT"])))))
     v["i458"] = np.tanh(((data["cc_bal_AMT_DRAWINGS_POS_CURRENT"]) * (np.minimum((((-1.0 * ((((data["cc_bal_CNT_DRAWINGS_CURRENT"]) * (((data["cc_bal_AMT_DRAWINGS_POS_CURRENT"]) * (data["cc_bal_AMT_DRAWINGS_POS_CURRENT"]))))))))), ((data["cc_bal_AMT_DRAWINGS_POS_CURRENT"]))))))
     v["i459"] = np.tanh(np.maximum(((((data["ty__Loan_for_working_capital_replenishment"]) * (-2.0)))), ((np.maximum(((((data["ty__Loan_for_working_capital_replenishment"]) * (data["SK_ID_PREV_y"])))), (((((data["cc_bal_CNT_DRAWINGS_POS_CURRENT"]) + (((0.036585) + (-2.0)))) / 2.0))))))))
     v["i460"] = np.tanh((((((((((data["cc_bal_AMT_DRAWINGS_CURRENT"]) < (data["cc_bal_AMT_PAYMENT_CURRENT"])) * 1.)) * 2.0)) * 2.0)) * (np.minimum(((data["cc_bal_AMT_PAYMENT_CURRENT"])), ((((0.043478) - (np.minimum(((data["te_FLAG_DOCUMENT_19"])), ((data["cc_bal_AMT_DRAWINGS_CURRENT"])))))))))))
@@ -531,9 +547,11 @@ def UseGPFeatures(data):
     v["i471"] = np.tanh(((np.maximum(((data["cc_bal_SK_DPD_DEF"])), ((data["NAME_CASH_LOAN_PURPOSE_Business_development"])))) * ((((((14.800000) + ((((14.800000) + (((((-1.0 * ((data["cc_bal_SK_DPD_DEF"])))) + (data["te_FLAG_DOCUMENT_19"])) / 2.0))) / 2.0))) / 2.0)) * (data["cc_bal_AMT_DRAWINGS_CURRENT"])))))
     v["i472"] = np.tanh((((((data["cc_bal_AMT_PAYMENT_CURRENT"]) > (((2.235290) - (((data["NAME_CASH_LOAN_PURPOSE_Business_development"]) * (((((data["cc_bal_AMT_PAYMENT_CURRENT"]) - (np.minimum(((0.494118)), ((data["cc_bal_AMT_PAYMENT_CURRENT"])))))) * 2.0))))))) * 1.)) * 2.0))
     v["i473"] = np.tanh(((((((((((np.where(data["ty__Real_estate_loan"] > 0, ((data["NAME_GOODS_CATEGORY_Insurance"]) * 2.0), ((data["NAME_GOODS_CATEGORY_Insurance"]) * (data["ty__Loan_for_working_capital_replenishment"])))) / 2.0)) * 2.0)) * 2.0)) * 2.0)) * 2.0))
-    v["i474"] = np.tanh(((data["ty__Loan_for_working_capital_replenishment"]) * ((((np.maximum(((np.tanh((data["ty__Loan_for_working_capital_replenishment"])))), ((data["FLAG_DOCUMENT_4"])))) + (((((data["NAME_CASH_LOAN_PURPOSE_Purchase_of_electronic_equipment"]) * (data["ty__Loan_for_working_capital_replenishment"]))) - (data["FLAG_DOCUMENT_10"])))) / 2.0))))
+    v["i474"] = np.tanh(
+        ((data["ty__Loan_for_working_capital_replenishment"]) * ((((np.maximum(((np.tanh((data["ty__Loan_for_working_capital_replenishment"])))), ((data["FLAG_DOCUMENT_4"])))) + (((((data["NAME_CASH_LOAN_PURPOSE_Purchase_of_electronic_equipment"]) * (data["ty__Loan_for_working_capital_replenishment"]))) - (data["FLAG_DOCUMENT_10"])))) / 2.0))))
     v["i475"] = np.tanh((((-1.0 * (((((((14.800000) * 2.0)) < (((data["NAME_CASH_LOAN_PURPOSE_Purchase_of_electronic_equipment"]) + ((((((1.98723483085632324)) * (data["ty__Loan_for_working_capital_replenishment"]))) + (((data["FLAG_DOCUMENT_10"]) + (data["ty__Loan_for_working_capital_replenishment"])))))))) * 1.))))) * 2.0))
-    v["i476"] = np.tanh(np.where((((data["ty__Loan_for_working_capital_replenishment"]) > ((10.0))) * 1.) > 0, (-1.0 * ((np.maximum(((data["ty__Loan_for_working_capital_replenishment"])), ((np.maximum(((data["ty__Loan_for_working_capital_replenishment"])), ((data["ty__Loan_for_working_capital_replenishment"]))))))))),np.maximum(((data["ty__Loan_for_working_capital_replenishment"])), (((-1.0 * ((data["ty__Loan_for_working_capital_replenishment"]))))))))
+    v["i476"] = np.tanh(np.where((((data["ty__Loan_for_working_capital_replenishment"]) > ((10.0))) * 1.) > 0, (-1.0 * ((np.maximum(((data["ty__Loan_for_working_capital_replenishment"])), ((np.maximum(((data["ty__Loan_for_working_capital_replenishment"])), ((data["ty__Loan_for_working_capital_replenishment"]))))))))),
+                                 np.maximum(((data["ty__Loan_for_working_capital_replenishment"])), (((-1.0 * ((data["ty__Loan_for_working_capital_replenishment"]))))))))
     v["i477"] = np.tanh(np.minimum(((((((((data["avg_buro_buro_bal_status_1"]) * (data["EXT_SOURCE_3"]))) * (data["EXT_SOURCE_3"]))) * (data["EXT_SOURCE_3"])))), (((((((data["avg_buro_buro_bal_status_1"]) * (data["EXT_SOURCE_3"]))) > (np.tanh((0.680000)))) * 1.)))))
     v["i478"] = np.tanh(((data["te_FLAG_DOCUMENT_19"]) * (np.where((((data["avg_buro_buro_bal_status_3"]) > (((data["te_FLAG_DOCUMENT_19"]) + (1.220590)))) * 1.) > 0, 14.800000, (-1.0 * ((((data["avg_buro_buro_bal_status_3"]) * (data["te_FLAG_DOCUMENT_19"])))))))))
     v["i479"] = np.tanh((-1.0 * ((((((data["FLAG_DOCUMENT_19"]) * 2.0)) * ((((data["FLAG_DOCUMENT_3"]) + ((((((data["FLAG_DOCUMENT_3"]) + (((data["te_FLAG_DOCUMENT_19"]) + (((data["FLAG_DOCUMENT_19"]) / 2.0))))) / 2.0)) / 2.0))) / 2.0)))))))
@@ -572,18 +590,30 @@ def UseGPFeatures(data):
     return v
 
 
-# In[4]:
+warnings.simplefilter(action='ignore', category=FutureWarning)
 
+DATA_DIR = '{}/data'.format(os.getcwd())
+SUBMISSION_DIR = '{}/submission'.format(os.getcwd())
+
+INPUT_FILE = os.path.join(DATA_DIR, 'application_train.csv.zip')
+TEST_INPUT_FILE = os.path.join(DATA_DIR, 'application_test.csv.zip')
+
+BUREAU_FILE = os.path.join(DATA_DIR, 'bureau.csv.zip')
+BUREAU_BAL_FILE = os.path.join(DATA_DIR, 'bureau_balance.csv.zip')
+PREV_APPLICATION_FILE = os.path.join(DATA_DIR, 'previous_application.csv.zip')
+CREDIT_CARD_BAL_FILE = os.path.join(DATA_DIR, 'credit_card_balance.csv.zip')
+POS_CASH_FILE = os.path.join(DATA_DIR, 'POS_CASH_balance.csv.zip')
+INSTALLMENT_PAYMENT_FILE = os.path.join(DATA_DIR, 'installments_payments.csv.zip')
+SUBMISSION_FILE = os.path.join(DATA_DIR, 'sample_submission.csv.zip')
 
 gc.enable()
 
-buro_bal = pd.read_csv('../input/bureau_balance.csv')
+buro_bal = pd.read_csv(BUREAU_BAL_FILE)
 print('Buro bal shape : ', buro_bal.shape)
 
 print('transform to dummies')
 buro_bal = pd.concat([buro_bal, pd.get_dummies(buro_bal.STATUS, prefix='buro_bal_status')], axis=1).drop('STATUS',
                                                                                                          axis=1)
-
 print('Counting buros')
 buro_counts = buro_bal[['SK_ID_BUREAU', 'MONTHS_BALANCE']].groupby('SK_ID_BUREAU').count()
 buro_bal['buro_count'] = buro_bal['SK_ID_BUREAU'].map(buro_counts['MONTHS_BALANCE'])
@@ -596,7 +626,7 @@ del buro_bal
 gc.collect()
 
 print('Read Bureau')
-buro = pd.read_csv('../input/bureau.csv')
+buro = pd.read_csv(BUREAU_FILE)
 
 print('Go to dummies')
 buro_credit_active_dum = pd.get_dummies(buro.CREDIT_ACTIVE, prefix='ca_')
@@ -624,7 +654,7 @@ del buro, buro_full
 gc.collect()
 
 print('Read prev')
-prev = pd.read_csv('../input/previous_application.csv')
+prev = pd.read_csv(PREV_APPLICATION_FILE)
 
 prev_cat_features = [
     f_ for f_ in prev.columns if prev[f_].dtype == 'object'
@@ -651,7 +681,7 @@ del prev
 gc.collect()
 
 print('Reading POS_CASH')
-pos = pd.read_csv('../input/POS_CASH_balance.csv')
+pos = pd.read_csv(POS_CASH_FILE)
 
 print('Go to dummies')
 pos = pd.concat([pos, pd.get_dummies(pos['NAME_CONTRACT_STATUS'])], axis=1)
@@ -667,7 +697,7 @@ del pos, nb_prevs
 gc.collect()
 
 print('Reading CC balance')
-cc_bal = pd.read_csv('../input/credit_card_balance.csv')
+cc_bal = pd.read_csv(CREDIT_CARD_BAL_FILE)
 
 print('Go to dummies')
 cc_bal = pd.concat([cc_bal, pd.get_dummies(cc_bal['NAME_CONTRACT_STATUS'], prefix='cc_bal_status_')], axis=1)
@@ -683,7 +713,7 @@ del cc_bal, nb_prevs
 gc.collect()
 
 print('Reading Installments')
-inst = pd.read_csv('../input/installments_payments.csv')
+inst = pd.read_csv(INSTALLMENT_PAYMENT_FILE)
 nb_prevs = inst[['SK_ID_CURR', 'SK_ID_PREV']].groupby('SK_ID_CURR').count()
 inst['SK_ID_PREV'] = inst['SK_ID_CURR'].map(nb_prevs['SK_ID_PREV'])
 
@@ -691,13 +721,9 @@ avg_inst = inst.groupby('SK_ID_CURR').mean()
 avg_inst.columns = ['inst_' + f_ for f_ in avg_inst.columns]
 
 print('Read data and test')
-data = pd.read_csv('../input/application_train.csv')
-test = pd.read_csv('../input/application_test.csv')
-print('Shapes : ', data.shape, test.shape)
-
-print('Read data and test')
-train = pd.read_csv('../input/application_train.csv')
-test = pd.read_csv('../input/application_test.csv')
+data = pd.read_csv(INPUT_FILE)
+train = pd.read_csv(INPUT_FILE)
+test = pd.read_csv(TEST_INPUT_FILE)
 print('Shapes : ', train.shape, train.shape)
 
 categorical_feats = [
@@ -728,14 +754,8 @@ gc.collect()
 
 ID = test.SK_ID_CURR
 
-# In[5]:
-
-
 train.columns = train.columns.str.replace('[^A-Za-z0-9_]', '_')
 test.columns = test.columns.str.replace('[^A-Za-z0-9_]', '_')
-
-# In[6]:
-
 
 floattypes = []
 inttypes = []
@@ -752,9 +772,6 @@ for c in test.columns:
         floattypes.append(c)
 train = train.reset_index(drop=True)
 test = test.reset_index(drop=True)
-
-# In[7]:
-
 
 kf = KFold(n_splits=5, shuffle=True, random_state=42)
 for col in stringtypes:
@@ -828,10 +845,13 @@ train = UseGPFeatures(train)
 test = UseGPFeatures(test)
 train['TARGET'] = traintargets
 
-from lightgbm import LGBMClassifier
-from sklearn.metrics import roc_auc_score, log_loss
-from sklearn.model_selection import StratifiedKFold
-import gc
+run_datetime = datetime.now()
+submission_file_name = os.path.join(SUBMISSION_DIR, 'scirpus_{0:%Y-%m-%d_%H:%M:%S}.csv'.format(run_datetime))
+
+train_df_filename = os.path.join(SUBMISSION_DIR, 'scirpus_train_{0:%Y-%m-%d_%H:%M:%S}.csv'.format(run_datetime))
+test_df_filename = os.path.join(SUBMISSION_DIR, 'scirpus_test_{0:%Y-%m-%d_%H:%M:%S}.csv'.format(run_datetime))
+train.to_csv(train_df_filename, index=False)
+test.to_csv(test_df_filename, index=False)
 
 gc.enable()
 
@@ -872,5 +892,5 @@ for n_fold, (trn_idx, val_idx) in enumerate(folds.split(train)):
     del clf, trn_x, trn_y, val_x, val_y
     gc.collect()
 
-Submission = pd.DataFrame({'SK_ID_CURR': ID, 'TARGET': sub_preds})
-Submission.to_csv("hybridII.csv", index=False)
+submission = pd.DataFrame({'SK_ID_CURR': ID, 'TARGET': sub_preds})
+submission.to_csv(submission_file_name, index=False)
