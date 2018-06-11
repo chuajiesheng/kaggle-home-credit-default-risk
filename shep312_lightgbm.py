@@ -14,10 +14,11 @@ import numpy as np
 import lightgbm as lgbm
 from sklearn.preprocessing import LabelEncoder
 import matplotlib.pyplot as plt
+from datetime import datetime
 
 """ Load and process inputs """
 input_dir = os.path.join(os.getcwd(), 'data')
-SUBMISSION_DIR = os.path.join(os.getcwd(), 'submission')
+submission_dir = os.path.join(os.getcwd(), 'submission')
 print('Input files:\n{}'.format(os.listdir(input_dir)))
 print('Loading data sets...')
 
@@ -186,8 +187,9 @@ test_df = merged_df[len_train:]
 del merged_df, app_test_df, bureau_df, bureau_balance_df, credit_card_df, pos_cash_df, prev_app_df
 gc.collect()
 
-train_df_filename = os.path.join(SUBMISSION_DIR, 'shep312_train_{0:%Y-%m-%d_%H:%M:%S}.csv'.format(run_datetime))
-test_df_filename = os.path.join(SUBMISSION_DIR, 'shep312_test_{0:%Y-%m-%d_%H:%M:%S}.csv'.format(run_datetime))
+run_datetime = datetime.now()
+train_df_filename = os.path.join(submission_dir, 'shep312_train_{0:%Y-%m-%d_%H:%M:%S}.csv'.format(run_datetime))
+test_df_filename = os.path.join(submission_dir, 'shep312_test_{0:%Y-%m-%d_%H:%M:%S}.csv'.format(run_datetime))
 train_df.to_csv(train_df_filename, index=False)
 test_df.to_csv(test_df_filename, index=False)
 
@@ -232,7 +234,8 @@ clf = lgbm.train(train_set=lgbm_train,
 """ Predict on test set and create submission """
 y_pred = clf.predict(test_df)
 out_df = pd.DataFrame({'SK_ID_CURR': meta_df['SK_ID_CURR'][len_train:], 'TARGET': y_pred})
-out_df.to_csv('submission.csv', index=False)
+submission_file_name = os.path.join(submission_dir, 'shep312_{0:%Y-%m-%d_%H:%M:%S}.csv'.format(run_datetime))
+out_df.to_csv(submission_file_name, index=False)
 fig, ax = plt.subplots(1, 1, figsize=[5, 7])
 lgbm.plot_importance(clf, ax=ax, max_num_features=20)
-plt.savefig('feature_importance.png')
+plt.savefig('shep312_feature_importance.png')
