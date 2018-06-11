@@ -17,6 +17,7 @@ import matplotlib.pyplot as plt
 
 """ Load and process inputs """
 input_dir = os.path.join(os.getcwd(), 'data')
+SUBMISSION_DIR = os.path.join(os.getcwd(), 'submission')
 print('Input files:\n{}'.format(os.listdir(input_dir)))
 print('Loading data sets...')
 
@@ -185,6 +186,11 @@ test_df = merged_df[len_train:]
 del merged_df, app_test_df, bureau_df, bureau_balance_df, credit_card_df, pos_cash_df, prev_app_df
 gc.collect()
 
+train_df_filename = os.path.join(SUBMISSION_DIR, 'shep312_train_{0:%Y-%m-%d_%H:%M:%S}.csv'.format(run_datetime))
+test_df_filename = os.path.join(SUBMISSION_DIR, 'shep312_test_{0:%Y-%m-%d_%H:%M:%S}.csv'.format(run_datetime))
+train_df.to_csv(train_df_filename, index=False)
+test_df.to_csv(test_df_filename, index=False)
+
 """ Train the model """
 target = train_df.pop('TARGET')
 test_df.drop(columns='TARGET', inplace=True)
@@ -196,15 +202,15 @@ del app_train_df
 gc.collect()
 
 lgbm_params = {
-    'boosting'        : 'dart',
-    'application'     : 'binary',
-    'learning_rate'   : 0.1,
+    'boosting': 'dart',
+    'application': 'binary',
+    'learning_rate': 0.1,
     'min_data_in_leaf': 30,
-    'num_leaves'      : 31,
-    'max_depth'       : -1,
+    'num_leaves': 31,
+    'max_depth': -1,
     'feature_fraction': 0.5,
     'scale_pos_weight': 2,
-    'drop_rate'       : 0.02
+    'drop_rate': 0.02
 }
 
 cv_results = lgbm.cv(train_set=lgbm_train,
