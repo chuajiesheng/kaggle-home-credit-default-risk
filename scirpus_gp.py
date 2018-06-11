@@ -909,7 +909,7 @@ for n_fold, (trn_idx, val_idx) in enumerate(folds.split(train)):
 feature_importance_filename = os.path.join(SUBMISSION_DIR, 'scirpus_feature_{0:%Y-%m-%d_%H:%M:%S}.csv'.format(run_datetime))
 feature_importance_df.to_csv(feature_importance_filename, index=False)
 
-train_submission = pd.DataFrame({'SK_ID_CURR': test_ID, 'TARGET': train_preds})
+train_submission = pd.DataFrame({'SK_ID_CURR': train_ID, 'TARGET': train_preds})
 train_submission.to_csv(train_submission_file_name, index=False)
 
 submission = pd.DataFrame({'SK_ID_CURR': test_ID, 'TARGET': sub_preds})

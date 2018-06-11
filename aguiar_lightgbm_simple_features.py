@@ -183,7 +183,7 @@ def previous_applications(nan_as_category=True):
     approved = prev[prev['NAME_CONTRACT_STATUS_Approved'] == 1]
     approved_agg = approved.groupby('SK_ID_CURR').agg(num_aggregations)
     approved_agg.columns = pd.Index(['APR_' + e[0] + "_" + e[1].upper() for e in approved_agg.columns.tolist()])
-    
+
     approved_agg = approved_agg.reset_index()
     prev_agg = prev_agg.reset_index()
     prev_agg = prev_agg.join(approved_agg, how='left', on='SK_ID_CURR', rsuffix='_right')
@@ -290,6 +290,7 @@ def kfold_lightgbm(df, num_folds, stratified=False):
         folds = KFold(n_splits=num_folds, shuffle=True, random_state=1001)
     # Create arrays and dataframes to store results
     oof_preds = np.zeros(train_df.shape[0])
+    train_preds = np.zeros(train_df.shape[0])
     sub_preds = np.zeros(test_df.shape[0])
     feature_importance_df = pd.DataFrame()
     feats = [f for f in train_df.columns if f not in ['TARGET', 'SK_ID_CURR', 'SK_ID_BUREAU', 'SK_ID_PREV', 'SK_ID_CURR_right']]
@@ -318,6 +319,7 @@ def kfold_lightgbm(df, num_folds, stratified=False):
                 eval_metric='auc', verbose=100, early_stopping_rounds=100)
 
         oof_preds[valid_idx] = clf.predict_proba(valid_x, num_iteration=clf.best_iteration_)[:, 1]
+        train_preds += clf.predict_proba(train_df[feats], num_iteration=clf.best_iteration_)[:, 1] / folds.n_splits
         sub_preds += clf.predict_proba(test_df[feats], num_iteration=clf.best_iteration_)[:, 1] / folds.n_splits
 
         fold_importance_df = pd.DataFrame()
@@ -333,6 +335,9 @@ def kfold_lightgbm(df, num_folds, stratified=False):
     # Write submission file and plot feature importance
     test_df['TARGET'] = sub_preds
     test_df[['SK_ID_CURR', 'TARGET']].to_csv(submission_file_name, index=False)
+
+    train_submission = pd.DataFrame({'SK_ID_CURR': train_df[['SK_ID_CURR']], 'TARGET': train_preds})
+    train_submission.to_csv(train_submission_file_name, index=False)
 
     feature_importance_filename = os.path.join(SUBMISSION_DIR, 'aguiar_feature_{0:%Y-%m-%d_%H:%M:%S}.csv'.format(run_datetime))
     feature_importance_df.to_csv(feature_importance_filename, index=False)
@@ -392,6 +397,7 @@ def main(debug=False):
 
 if __name__ == "__main__":
     run_datetime = datetime.now()
+    train_submission_file_name = os.path.join(SUBMISSION_DIR, 'aguiar_train_predict_{0:%Y-%m-%d_%H:%M:%S}.csv'.format(run_datetime))
     submission_file_name = os.path.join(SUBMISSION_DIR, 'aguiar_{0:%Y-%m-%d_%H:%M:%S}.csv'.format(run_datetime))
     with timer("Full model run"):
         main(debug=False)
