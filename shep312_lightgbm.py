@@ -16,19 +16,19 @@ from sklearn.preprocessing import LabelEncoder
 import matplotlib.pyplot as plt
 
 """ Load and process inputs """
-input_dir = os.path.join(os.pardir, 'input')
+input_dir = os.path.join(os.getcwd(), 'data')
 print('Input files:\n{}'.format(os.listdir(input_dir)))
 print('Loading data sets...')
 
 sample_size = None
-app_train_df = pd.read_csv(os.path.join(input_dir, 'application_train.csv'), nrows=sample_size)
-app_test_df = pd.read_csv(os.path.join(input_dir, 'application_test.csv'), nrows=sample_size)
-bureau_df = pd.read_csv(os.path.join(input_dir, 'bureau.csv'), nrows=sample_size)
-bureau_balance_df = pd.read_csv(os.path.join(input_dir, 'bureau_balance.csv'), nrows=sample_size)
-credit_card_df = pd.read_csv(os.path.join(input_dir, 'credit_card_balance.csv'), nrows=sample_size)
-pos_cash_df = pd.read_csv(os.path.join(input_dir, 'POS_CASH_balance.csv'), nrows=sample_size)
-prev_app_df = pd.read_csv(os.path.join(input_dir, 'previous_application.csv'), nrows=sample_size)
-install_df = pd.read_csv(os.path.join(input_dir, 'installments_payments.csv'), nrows=sample_size)
+app_train_df = pd.read_csv(os.path.join(input_dir, 'application_train.csv.zip'), nrows=sample_size)
+app_test_df = pd.read_csv(os.path.join(input_dir, 'application_test.csv.zip'), nrows=sample_size)
+bureau_df = pd.read_csv(os.path.join(input_dir, 'bureau.csv.zip'), nrows=sample_size)
+bureau_balance_df = pd.read_csv(os.path.join(input_dir, 'bureau_balance.csv.zip'), nrows=sample_size)
+credit_card_df = pd.read_csv(os.path.join(input_dir, 'credit_card_balance.csv.zip'), nrows=sample_size)
+pos_cash_df = pd.read_csv(os.path.join(input_dir, 'POS_CASH_balance.csv.zip'), nrows=sample_size)
+prev_app_df = pd.read_csv(os.path.join(input_dir, 'previous_application.csv.zip'), nrows=sample_size)
+install_df = pd.read_csv(os.path.join(input_dir, 'installments_payments.csv.zip'), nrows=sample_size)
 print('Data loaded.\nMain application training data set shape = {}'.format(app_train_df.shape))
 print('Main application test data set shape = {}'.format(app_test_df.shape))
 print('Positive target proportion = {:.2f}'.format(app_train_df['TARGET'].mean()))
