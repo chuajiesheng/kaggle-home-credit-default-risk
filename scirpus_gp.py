@@ -914,3 +914,6 @@ train_submission.to_csv(train_submission_file_name, index=False)
 
 submission = pd.DataFrame({'SK_ID_CURR': test_ID, 'TARGET': sub_preds})
 submission.to_csv(submission_file_name, index=False)
+
+print('train_submission_file_name', train_submission_file_name)
+print('submission', submission)

@@ -244,6 +244,9 @@ submission_file_name = os.path.join(submission_dir, 'shep312_{0:%Y-%m-%d_%H:%M:%
 out_train_df.to_csv(y_train_submission_file_name, index=False)
 out_df.to_csv(submission_file_name, index=False)
 
+print('y_train_submission_file_name', y_train_submission_file_name)
+print('submission_file_name', submission_file_name)
+
 fig, ax = plt.subplots(1, 1, figsize=[5, 7])
 lgbm.plot_importance(clf, ax=ax, max_num_features=20)
 plt.savefig('shep312_feature_importance.png')
