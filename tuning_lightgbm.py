@@ -16,6 +16,9 @@ import utility.expand_grid as expand_grid
 import fit_models as fit_models
 import predict_models as predict_models
 
+import warnings
+warnings.filterwarnings('ignore')
+
 DATA_DIR = '{}/data'.format(os.getcwd())
 SUBMISSION_DIR = '{}/submission'.format(os.getcwd())
 os.listdir(DATA_DIR)
