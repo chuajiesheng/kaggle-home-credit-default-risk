@@ -232,10 +232,18 @@ clf = lgbm.train(train_set=lgbm_train,
                  num_boost_round=optimum_boost_rounds)
 
 """ Predict on test set and create submission """
+y_train_pred = clf.predict(train_df)
 y_pred = clf.predict(test_df)
+
+out_train_df = pd.DataFrame({'SK_ID_CURR': meta_df['SK_ID_CURR'][:len_train], 'TARGET': y_train_pred})
 out_df = pd.DataFrame({'SK_ID_CURR': meta_df['SK_ID_CURR'][len_train:], 'TARGET': y_pred})
+
+y_train_submission_file_name = os.path.join(submission_dir, 'shep312_train_predict_{0:%Y-%m-%d_%H:%M:%S}.csv'.format(run_datetime))
 submission_file_name = os.path.join(submission_dir, 'shep312_{0:%Y-%m-%d_%H:%M:%S}.csv'.format(run_datetime))
+
+out_train_df.to_csv(y_train_submission_file_name, index=False)
 out_df.to_csv(submission_file_name, index=False)
+
 fig, ax = plt.subplots(1, 1, figsize=[5, 7])
 lgbm.plot_importance(clf, ax=ax, max_num_features=20)
 plt.savefig('shep312_feature_importance.png')
