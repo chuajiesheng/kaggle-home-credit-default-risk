@@ -129,7 +129,7 @@ def bureau_and_balance(num_rows=None, nan_as_category=True):
     # Bureau: Active credits - using only numerical aggregations
     active = bureau[bureau['CREDIT_ACTIVE_Active'] == 1]
     active_agg = active.groupby('SK_ID_CURR').agg(num_aggregations)
-    active_agg.columns = pd.Index(['ACT_' + e[0] + "_" + e[1].upper() for e in active_agg.columns.tolist()])
+    active_agg.columns = ['SK_ID_CURR'] + pd.Index(['ACT_' + e[0] + "_" + e[1].upper() for e in active_agg[1:].columns.tolist()])
     bureau_agg = bureau_agg.join(active_agg, how='left', on='SK_ID_CURR')
     del active, active_agg
     gc.collect()
