@@ -644,18 +644,18 @@ test.reset_index(drop=True, inplace=True)
 param_grid = {
     # Boosting parameters
     'learning_rate': [0.1],
-    'n_estimators': [1000],  # this specify the upper bound, we use early stop to find the optimal value
+    'n_estimators': [334],  # this specify the upper bound, we use early stop to find the optimal value
 
     # Tree-based parameters
     'max_depth': [5],
-    'min_child_weight': [1],
-    'gamma': [0],
+    'min_child_weight': [6],
+    'gamma': [1.3],
     'subsample': [0.8],
     'colsample_bytree': [0.8],
 
     # Regulations parameters
-    'reg_lambda': [1],
-    'reg_alpha': [1],
+    'reg_lambda': [1.0],
+    'reg_alpha': [5.0],
 
     # Other parameters
     'scale_pos_weight': [1]
@@ -664,182 +664,9 @@ param_grid = {
 param_table = expand_grid.expand_grid(param_grid)
 
 #
-# Find the optimal number of trees for this learning rate
-# n_estimators = 334
-#
-param_grid, _ = fit_models.fit_xgboost(
-    param_grid,
-    param_table,
-    train,
-    col_type,
-    find_n_estimator=True,
-    cv_iterations=1,
-    cv_folds=5,
-    nthread=N_THREADS,
-    verbose=1
-)
-
-#
-# Tune max_depth and min_child_weight
-# min_child_weight = 6
-# max_depth = 5
-#
-
-param_grid['max_depth'] = range(3, 10, 2)
-param_grid['min_child_weight'] = range(1, 6, 2)
-
-param_table = expand_grid.expand_grid(param_grid)
-param_grid, _ = fit_models.fit_xgboost(
-    param_grid,
-    param_table,
-    train,
-    col_type,
-    find_n_estimator=False,
-    cv_iterations=5,
-    cv_folds=5,
-    nthread=N_THREADS,
-    verbose=0
-)
-
-current_max_depth = param_grid['max_depth'][0]
-current_min_child_weight = param_grid['min_child_weight'][0]
-param_grid['max_depth'] = np.unique([
-    np.max([current_max_depth - 1, 1]),
-    current_max_depth,
-    current_max_depth + 1
-])
-param_grid['min_child_weight'] = np.unique([
-    np.max([current_min_child_weight - 1, 1]),
-    current_min_child_weight,
-    current_min_child_weight + 1
-])
-
-param_table = expand_grid.expand_grid(param_grid)
-param_grid, _ = fit_models.fit_xgboost(
-    param_grid,
-    param_table,
-    train,
-    col_type,
-    find_n_estimator=False,
-    cv_iterations=5,
-    cv_folds=5,
-    nthread=N_THREADS,
-    verbose=0
-)
-
-#
-# Tune gamma
-# gamma = 1.3
-#
-
-param_grid['gamma'] = [x / 10.0 for x in range(0, 15)]
-
-param_table = expand_grid.expand_grid(param_grid)
-param_grid, _ = fit_models.fit_xgboost(
-    param_grid,
-    param_table,
-    train,
-    col_type,
-    find_n_estimator=False,
-    cv_iterations=5,
-    cv_folds=5,
-    nthread=N_THREADS,
-    verbose=0
-)
-
-#
-# Tune subsample and colsample_bytree
-# subsample = 0.8
-# colsample_bytree = 0.8
-#
-
-# Coarse search
-param_grid['subsample'] = [x / 10.0 for x in range(5, 11)]
-param_grid['colsample_bytree'] = [x / 10.0 for x in range(5, 11)]
-
-param_table = expand_grid.expand_grid(param_grid)
-param_grid, _ = fit_models.fit_xgboost(
-    param_grid,
-    param_table,
-    train,
-    col_type,
-    find_n_estimator=False,
-    cv_iterations=5,
-    cv_folds=5,
-    nthread=N_THREADS,
-    verbose=0
-)
-
-current_subsample = param_grid['subsample'][0]
-current_colsample_bytree = param_grid['colsample_bytree'][0]
-
-param_grid['subsample'] = [x / 100.0 for x in range(
-    int(current_subsample * 100) - 15,
-    np.min([int(current_subsample * 100) + 15, 105]),
-    5
-)]
-
-param_grid['colsample_bytree'] = [x / 100.0 for x in range(
-    int(current_colsample_bytree * 100) - 15,
-    np.min([int(current_colsample_bytree * 100) + 15, 105]),
-    5
-)]
-
-param_table = expand_grid.expand_grid(param_grid)
-param_grid, _ = fit_models.fit_xgboost(
-    param_grid,
-    param_table,
-    train,
-    col_type,
-    find_n_estimator=False,
-    cv_iterations=5,
-    cv_folds=5,
-    nthread=N_THREADS,
-    verbose=0
-)
-
-#
-# Tune reg_lambda
-# reg_lambda = 1.0
-#
-param_grid['reg_lambda'] = [0, 1e-5, 0.001, 0.01, 0.05, 0.1, 0.5, 1, 3, 5, 10, 100]
-
-param_table = expand_grid.expand_grid(param_grid)
-param_grid, _ = fit_models.fit_xgboost(
-    param_grid,
-    param_table,
-    train,
-    col_type,
-    find_n_estimator=False,
-    cv_iterations=5,
-    cv_folds=5,
-    nthread=N_THREADS,
-    verbose=0
-)
-
-#
-# Tune reg_alpha
-# reg_alpha = 5.0
-#
-param_grid['reg_alpha'] = [0, 1e-5, 0.001, 0.005, 0.01, 0.05, 0.1, 1, 3, 5, 10, 100]
-
-param_table = expand_grid.expand_grid(param_grid)
-param_grid, _ = fit_models.fit_xgboost(
-    param_grid,
-    param_table,
-    train,
-    col_type,
-    find_n_estimator=False,
-    cv_iterations=5,
-    cv_folds=5,
-    nthread=N_THREADS,
-    verbose=0
-)
-
-#
 # Final randomized search
 #
-param_grid['max_depth'] = [8, 9, 10]
+param_grid['max_depth'] = [5, 8, 9, 10]
 param_grid['min_child_weight'] = [1, 2]
 param_grid['gamma'] = [1.1, 1.2, 1.3]
 param_grid['subsample'] = norm(loc=param_grid['subsample'][0], scale=0.02)
