@@ -753,7 +753,8 @@ test = test.merge(right=avg_inst.reset_index(), how='left', on='SK_ID_CURR')
 del avg_buro, avg_prev
 gc.collect()
 
-ID = test.SK_ID_CURR
+train_ID = train.SK_ID_CURR
+test_ID = test.SK_ID_CURR
 
 train.columns = train.columns.str.replace('[^A-Za-z0-9_]', '_')
 test.columns = test.columns.str.replace('[^A-Za-z0-9_]', '_')
@@ -847,6 +848,7 @@ test = UseGPFeatures(test)
 train['TARGET'] = traintargets
 
 run_datetime = datetime.now()
+train_submission_file_name = os.path.join(SUBMISSION_DIR, 'scirpus_train_predict_{0:%Y-%m-%d_%H:%M:%S}.csv'.format(run_datetime))
 submission_file_name = os.path.join(SUBMISSION_DIR, 'scirpus_{0:%Y-%m-%d_%H:%M:%S}.csv'.format(run_datetime))
 
 train_df_filename = os.path.join(SUBMISSION_DIR, 'scirpus_train_{0:%Y-%m-%d_%H:%M:%S}.csv'.format(run_datetime))
@@ -858,6 +860,7 @@ gc.enable()
 
 folds = KFold(n_splits=5, shuffle=True, random_state=42)
 oof_preds = np.zeros(train.shape[0])
+train_preds = np.zeros(train.shape[0])
 sub_preds = np.zeros(test.shape[0])
 feats = [f for f in train.columns if f not in ['SK_ID_CURR', 'TARGET']]
 
@@ -889,6 +892,7 @@ for n_fold, (trn_idx, val_idx) in enumerate(folds.split(train)):
             )
 
     oof_preds[val_idx] = clf.predict_proba(val_x, num_iteration=clf.best_iteration_)[:, 1]
+    train_preds += clf.predict_proba(train[feats], num_iteration=clf.best_iteration_)[:, 1] / folds.n_splits
     sub_preds += clf.predict_proba(test[feats], num_iteration=clf.best_iteration_)[:, 1] / folds.n_splits
 
     print('Fold %2d AUC : %.6f' % (n_fold + 1, roc_auc_score(val_y, oof_preds[val_idx])))
@@ -905,5 +909,8 @@ for n_fold, (trn_idx, val_idx) in enumerate(folds.split(train)):
 feature_importance_filename = os.path.join(SUBMISSION_DIR, 'scirpus_feature_{0:%Y-%m-%d_%H:%M:%S}.csv'.format(run_datetime))
 feature_importance_df.to_csv(feature_importance_filename, index=False)
 
-submission = pd.DataFrame({'SK_ID_CURR': ID, 'TARGET': sub_preds})
+train_submission = pd.DataFrame({'SK_ID_CURR': test_ID, 'TARGET': train_preds})
+train_submission.to_csv(train_submission_file_name, index=False)
+
+submission = pd.DataFrame({'SK_ID_CURR': test_ID, 'TARGET': sub_preds})
 submission.to_csv(submission_file_name, index=False)
