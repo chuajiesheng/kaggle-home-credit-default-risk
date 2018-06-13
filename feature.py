@@ -66,12 +66,6 @@ def gen_relative_calculation(train_test_df):
     return application_df
 
 
-with gen_relative_calculation(train_test) as df:
-    X = X.merge(right=df, how='left', on='SK_ID_CURR')
-    X_test = X_test.merge(right=df, how='left', on='SK_ID_CURR')
-    print('gen_relative_calculation', X.shape)
-    assert X.shape[0] == 307511
-    gc.collect()
 #
 # Generated features from previous application
 #
@@ -104,13 +98,6 @@ def gen_prev_installment_feature(installment_payment_df):
 
     return prev_installment_feature_by_curr
 
-
-with gen_prev_installment_feature(installment_payment) as df:
-    X = X.merge(right=df, how='left', on='SK_ID_CURR')
-    X_test = X_test.merge(right=df, how='left', on='SK_ID_CURR')
-    print('prev_installment_feature', X.shape)
-    assert X.shape[0] == 307511
-    gc.collect()
 
 #
 # - bureau.csv
@@ -152,14 +139,6 @@ def gen_bur_month_balance(bureau_df, bureau_bal_df):
     return bureau_agg.reset_index()
 
 
-with gen_bur_month_balance(bureau, bureau_bal) as df:
-    X = X.merge(right=df, how='left', on='SK_ID_CURR')
-    X_test = X_test.merge(right=df, how='left', on='SK_ID_CURR')
-    print('bur_month_balance', X.shape)
-    assert X.shape[0] == 307511
-    gc.collect()
-
-
 #
 # credit_variety
 #
@@ -176,14 +155,6 @@ def gen_credit_variety(bureau_df):
     credit_variety['AVERAGE_LOAN_TYPE'] = credit_variety['BUREAU_LOAN_COUNT'] / credit_variety['BUREAU_LOAN_TYPES']
 
     return credit_variety
-
-
-with gen_credit_variety(bureau) as df:
-    X = X.merge(right=df, how='left', on='SK_ID_CURR')
-    X_test = X_test.merge(right=df, how='left', on='SK_ID_CURR')
-    print('credit_variety', X.shape)
-    assert X.shape[0] == 307511
-    gc.collect()
 
 
 #
@@ -206,13 +177,6 @@ def gen_bureau_active(bureau_df):
     return bureau_active_sum.merge(right=bureau_active_mean, how='left', on='SK_ID_CURR')
 
 
-with gen_bureau_active(bureau) as df:
-    X = X.merge(right=df, how='left', on='SK_ID_CURR')
-    X_test = X_test.merge(right=df, how='left', on='SK_ID_CURR')
-    print('bureau_active', X.shape)
-    assert X.shape[0] == 307511
-    gc.collect()
-
 #
 # day_credit_group
 #
@@ -234,13 +198,6 @@ def gen_day_credit_group(bureau_df):
 
     return day_credit_group_mean.merge(right=day_credit_group_max, how='left', on='SK_ID_CURR')
 
-
-with gen_day_credit_group(bureau) as df:
-    X = X.merge(right=df, how='left', on='SK_ID_CURR')
-    X_test = X_test.merge(right=df, how='left', on='SK_ID_CURR')
-    print('day_credit_group', X.shape)
-    assert X.shape[0] == 307511
-    gc.collect()
 
 #
 # bureau_credit_time
@@ -265,13 +222,6 @@ def gen_bureau_credit_time(bureau_df):
     return credit_time_mean.merge(right=credit_time_max, how='left', on='SK_ID_CURR')
 
 
-with gen_bureau_credit_time(bureau) as df:
-    X = X.merge(right=df, how='left', on='SK_ID_CURR')
-    X_test = X_test.merge(right=df, how='left', on='SK_ID_CURR')
-    print('bureau_credit_time', X.shape)
-    assert X.shape[0] == 307511
-    gc.collect()
-
 #
 # loan_count
 #
@@ -289,13 +239,6 @@ def gen_loan_count(bureau_df):
 
     return max_per_user.merge(right=current_loan_count, how='left', on='SK_ID_CURR')
 
-
-with gen_loan_count(bureau) as df:
-    X = X.merge(right=df, how='left', on='SK_ID_CURR')
-    X_test = X_test.merge(right=df, how='left', on='SK_ID_CURR')
-    print('loan_count', X.shape)
-    assert X.shape[0] == 307511
-    gc.collect()
 
 #
 # cust_debt_to_credit
@@ -317,13 +260,6 @@ def gen_cust_debt_to_credit(bureau_df):
 
     return cust_profile
 
-
-with gen_cust_debt_to_credit(bureau) as df:
-    X = X.merge(right=df, how='left', on='SK_ID_CURR')
-    X_test = X_test.merge(right=df, how='left', on='SK_ID_CURR')
-    print('cust_debt_to_credit', X.shape)
-    assert X.shape[0] == 307511
-    gc.collect()
 
 #
 # cust_overdue_debt
@@ -347,13 +283,6 @@ def gen_cust_overdue_debt(bureau_df):
     return cust_profile
 
 
-with gen_cust_overdue_debt(bureau) as df:
-    X = X.merge(right=df, how='left', on='SK_ID_CURR')
-    X_test = X_test.merge(right=df, how='left', on='SK_ID_CURR')
-    print('cust_overdue_debt', X.shape)
-    assert X.shape[0] == 307511
-    gc.collect()
-
 #
 # avg_prolong
 #
@@ -367,13 +296,6 @@ def gen_avg_prolong(bureau_df):
                                                           columns={'CNT_CREDIT_PROLONG': 'AVG_CREDITDAYS_PROLONGED'})
     assert len(list(avg_prolong.columns)) == 2
 
-
-with gen_avg_prolong(bureau) as df:
-    X = X.merge(right=df, how='left', on='SK_ID_CURR')
-    X_test = X_test.merge(right=df, how='left', on='SK_ID_CURR')
-    print('avg_prolong', X.shape)
-    assert X.shape[0] == 307511
-    gc.collect()
 
 #
 # avg_buro
@@ -396,14 +318,6 @@ def gen_avg_buro(bureau_df, bureau_bal_df):
 
     del avg_buro['SK_ID_BUREAU']
     return avg_buro
-
-
-with gen_avg_buro(bureau, bureau_bal) as df:
-    X = X.merge(right=df, how='left', on='SK_ID_CURR')
-    X_test = X_test.merge(right=df, how='left', on='SK_ID_CURR')
-    print('avg_buro', X.shape)
-    assert X.shape[0] == 307511
-    gc.collect()
 
 
 # - POS_CASH_balance.csv
@@ -430,13 +344,6 @@ def gen_pos_cash_features(pos_cash_df):
     return max_pos_cash.merge(right=avg_pos_cash, how='left', on='SK_ID_CURR').merge(right=count_pos_cash, how='left', on='SK_ID_CURR')
 
 
-with gen_pos_cash_features(pos_cash) as df:
-    X = X.merge(right=df, how='left', on='SK_ID_CURR')
-    X_test = X_test.merge(right=df, how='left', on='SK_ID_CURR')
-    print('pos_cash_features', X.shape)
-    assert X.shape[0] == 307511
-    gc.collect()
-
 #
 # pos_cash
 #
@@ -456,14 +363,6 @@ def gen_agg_pos_cash(pos_cash_df):
     return pos_cash_agg.reset_index()
 
 
-with gen_agg_pos_cash(pos_cash) as df:
-    X = X.merge(right=df, how='left', on='SK_ID_CURR')
-    X_test = X_test.merge(right=df, how='left', on='SK_ID_CURR')
-    print('agg_pos_cash', X.shape)
-    assert X.shape[0] == 307511
-    gc.collect()
-
-
 def gen_mean_pos_cash(pos_cash_df):
     le = LabelEncoder()
     pos_cash_df['NAME_CONTRACT_STATUS'] = le.fit_transform(pos_cash_df['NAME_CONTRACT_STATUS'].astype(str))
@@ -480,13 +379,6 @@ def gen_mean_pos_cash(pos_cash_df):
 
     return mean_pos_cash.reset_index()
 
-
-with gen_mean_pos_cash(pos_cash) as df:
-    X = X.merge(right=df, how='left', on='SK_ID_CURR')
-    X_test = X_test.merge(right=df, how='left', on='SK_ID_CURR')
-    print('pos_cash', X.shape)
-    assert X.shape[0] == 307511
-    gc.collect()
 
 #
 # avg_credit_card_bal
@@ -505,13 +397,6 @@ def gen_avg_credit_card_bal(credit_card_bal_df):
     return avg_credit_card_bal
 
 
-with gen_avg_credit_card_bal(credit_card_bal) as df:
-    X = X.merge(right=df, how='left', on='SK_ID_CURR')
-    X_test = X_test.merge(right=df, how='left', on='SK_ID_CURR')
-    print('avg_credit_card_bal', X.shape)
-    assert X.shape[0] == 307511
-    gc.collect()
-
 #
 # credit_card_bal
 #
@@ -523,14 +408,6 @@ def gen_agg_credit_card_bal(credit_card_bal_df):
     credit_card_bal_agg['CC_COUNT'] = credit_card_bal.groupby('SK_ID_CURR').size()
 
     return credit_card_bal_agg.reset_index()
-
-
-with gen_agg_credit_card_bal(credit_card_bal) as df:
-    X = X.merge(right=df, how='left', on='SK_ID_CURR')
-    X_test = X_test.merge(right=df, how='left', on='SK_ID_CURR')
-    print('agg_credit_card_bal', X.shape)
-    assert X.shape[0] == 307511
-    gc.collect()
 
 
 def gen_credit_card_bal(credit_card_bal_df):
@@ -546,14 +423,6 @@ def gen_credit_card_bal(credit_card_bal_df):
     avg_credit_card_bal = credit_card_bal_df.groupby('SK_ID_CURR').mean()
     avg_credit_card_bal.columns = ['MEAN_OF_{}'.format(c) for c in avg_credit_card_bal.columns]
     return avg_credit_card_bal.reset_index()
-
-
-with gen_credit_card_bal(credit_card_bal) as df:
-    X = X.merge(right=df, how='left', on='SK_ID_CURR')
-    X_test = X_test.merge(right=df, how='left', on='SK_ID_CURR')
-    print('credit_card_bal', X.shape)
-    assert X.shape[0] == 307511
-    gc.collect()
 
 
 # - previous_application.csv
@@ -591,14 +460,6 @@ def gen_agg_prev(prev_df):
     return prev_agg.reset_index()
 
 
-with gen_agg_prev(prev) as df:
-    X = X.merge(right=df, how='left', on='SK_ID_CURR')
-    X_test = X_test.merge(right=df, how='left', on='SK_ID_CURR')
-    print('agg_prev', X.shape)
-    assert X.shape[0] == 307511
-    gc.collect()
-
-
 def gen_avg_prev(prev_df):
     prev_cat_features = [pcol for pcol in prev_df.columns if prev_df[pcol].dtype == 'object']
     prev_df = pd.get_dummies(prev_df, columns=prev_cat_features)
@@ -611,13 +472,6 @@ def gen_avg_prev(prev_df):
 
     return avg_prev
 
-
-with gen_avg_prev(prev) as df:
-    X = X.merge(right=df, how='left', on='SK_ID_CURR')
-    X_test = X_test.merge(right=df, how='left', on='SK_ID_CURR')
-    print('avg_prev', X.shape)
-    assert X.shape[0] == 307511
-    gc.collect()
 
 # - installments_payments.csv
 #     - Repayment history for the previously disbursed credits in Home Credit related to the loans in our sample.
@@ -655,14 +509,6 @@ def gen_agg_installments(installment_payment_df):
     return installment_payment_agg.reset_index()
 
 
-with gen_agg_installments(installment_payment) as df:
-    X = X.merge(right=df, how='left', on='SK_ID_CURR')
-    X_test = X_test.merge(right=df, how='left', on='SK_ID_CURR')
-    print('agg_installments', X.shape)
-    assert X.shape[0] == 307511
-    gc.collect()
-
-
 def gen_avg_payments(installment_payment_df):
     avg_payments = installment_payment_df.groupby('SK_ID_CURR').mean()
     del avg_payments['SK_ID_PREV']
@@ -683,9 +529,237 @@ def gen_avg_payments(installment_payment_df):
     return avg_payments.merge(right=avg_payments2, how='left', on='SK_ID_CURR').merge(right=avg_payments3, how='left', on='SK_ID_CURR')
 
 
-with gen_avg_payments(installment_payment) as df:
-    X = X.merge(right=df, how='left', on='SK_ID_CURR')
-    X_test = X_test.merge(right=df, how='left', on='SK_ID_CURR')
-    print('avg_payments', X.shape)
-    assert X.shape[0] == 307511
-    gc.collect()
+def gen_feature():
+    feature_mapping = [
+        {
+            'func': gen_relative_calculation,
+            'args': train_test
+        },
+        {
+            'func': gen_relative_calculation,
+            'args': train_test,
+        },
+        {
+            'func': gen_prev_installment_feature,
+            'args': installment_payment,
+        },
+        {
+            'func': gen_bur_month_balance,
+            'args': (bureau, bureau_bal),
+        },
+        {
+            'func': gen_credit_variety,
+            'args': bureau,
+        },
+        {
+            'func': gen_bureau_active,
+            'args': bureau,
+        },
+        {
+            'func': gen_day_credit_group,
+            'args': bureau,
+        },
+        {
+            'func': gen_bureau_credit_time,
+            'args': bureau,
+        },
+        {
+            'func': gen_loan_count,
+            'args': bureau,
+        },
+        {
+            'func': gen_cust_debt_to_credit,
+            'args': bureau,
+        },
+        {
+            'func': gen_cust_overdue_debt,
+            'args': bureau,
+        },
+        {
+            'func': gen_avg_prolong,
+            'args': bureau,
+        },
+        {
+            'func': gen_avg_buro,
+            'args': (bureau, bureau_bal),
+        },
+        {
+            'func': gen_pos_cash_features,
+            'args': pos_cash,
+        },
+        {
+            'func': gen_agg_pos_cash,
+            'args': pos_cash,
+        },
+        {
+            'func': gen_mean_pos_cash,
+            'args': pos_cash,
+        },
+        {
+            'func': gen_avg_credit_card_bal,
+            'args': credit_card_bal,
+        },
+        {
+            'func': gen_agg_credit_card_bal,
+            'args': credit_card_bal,
+        },
+        {
+            'func': gen_credit_card_bal,
+            'args': credit_card_bal,
+        },
+        {
+            'func': gen_agg_prev,
+            'args': prev,
+        },
+        {
+            'func': gen_avg_prev,
+            'args': prev,
+        },
+        {
+            'func': gen_agg_installments,
+            'args': installment_payment,
+        },
+        {
+            'func': gen_avg_payments,
+            'args': installment_payment,
+        }
+    ]
+
+
+def gen_all_features(X_df, X_test_df):
+    X_df = X_df.copy()
+    X_test_df = X_test_df.copy()
+    with gen_relative_calculation(train_test) as df:
+        X_df = X_df.merge(right=df, how='left', on='SK_ID_CURR')
+        X_test_df = X_test_df.merge(right=df, how='left', on='SK_ID_CURR')
+        print('gen_relative_calculation', X_df.shape)
+        assert X_df.shape[0] == 307511
+        gc.collect()
+    with gen_prev_installment_feature(installment_payment) as df:
+        X_df = X_df.merge(right=df, how='left', on='SK_ID_CURR')
+        X_test_df = X_test_df.merge(right=df, how='left', on='SK_ID_CURR')
+        print('prev_installment_feature', X_df.shape)
+        assert X_df.shape[0] == 307511
+        gc.collect()
+    with gen_bur_month_balance(bureau, bureau_bal) as df:
+        X_df = X_df.merge(right=df, how='left', on='SK_ID_CURR')
+        X_test_df = X_test_df.merge(right=df, how='left', on='SK_ID_CURR')
+        print('bur_month_balance', X_df.shape)
+        assert X_df.shape[0] == 307511
+        gc.collect()
+    with gen_credit_variety(bureau) as df:
+        X_df = X_df.merge(right=df, how='left', on='SK_ID_CURR')
+        X_test_df = X_test_df.merge(right=df, how='left', on='SK_ID_CURR')
+        print('credit_variety', X_df.shape)
+        assert X_df.shape[0] == 307511
+        gc.collect()
+    with gen_bureau_active(bureau) as df:
+        X_df = X_df.merge(right=df, how='left', on='SK_ID_CURR')
+        X_test_df = X_test_df.merge(right=df, how='left', on='SK_ID_CURR')
+        print('bureau_active', X_df.shape)
+        assert X_df.shape[0] == 307511
+        gc.collect()
+    with gen_day_credit_group(bureau) as df:
+        X_df = X_df.merge(right=df, how='left', on='SK_ID_CURR')
+        X_test_df = X_test_df.merge(right=df, how='left', on='SK_ID_CURR')
+        print('day_credit_group', X_df.shape)
+        assert X_df.shape[0] == 307511
+        gc.collect()
+    with gen_bureau_credit_time(bureau) as df:
+        X_df = X_df.merge(right=df, how='left', on='SK_ID_CURR')
+        X_test_df = X_test_df.merge(right=df, how='left', on='SK_ID_CURR')
+        print('bureau_credit_time', X_df.shape)
+        assert X_df.shape[0] == 307511
+        gc.collect()
+    with gen_loan_count(bureau) as df:
+        X_df = X_df.merge(right=df, how='left', on='SK_ID_CURR')
+        X_test_df = X_test_df.merge(right=df, how='left', on='SK_ID_CURR')
+        print('loan_count', X_df.shape)
+        assert X_df.shape[0] == 307511
+        gc.collect()
+    with gen_cust_debt_to_credit(bureau) as df:
+        X_df = X_df.merge(right=df, how='left', on='SK_ID_CURR')
+        X_test_df = X_test_df.merge(right=df, how='left', on='SK_ID_CURR')
+        print('cust_debt_to_credit', X_df.shape)
+        assert X_df.shape[0] == 307511
+        gc.collect()
+    with gen_cust_overdue_debt(bureau) as df:
+        X_df = X_df.merge(right=df, how='left', on='SK_ID_CURR')
+        X_test_df = X_test_df.merge(right=df, how='left', on='SK_ID_CURR')
+        print('cust_overdue_debt', X_df.shape)
+        assert X_df.shape[0] == 307511
+        gc.collect()
+    with gen_avg_prolong(bureau) as df:
+        X_df = X_df.merge(right=df, how='left', on='SK_ID_CURR')
+        X_test_df = X_test_df.merge(right=df, how='left', on='SK_ID_CURR')
+        print('avg_prolong', X_df.shape)
+        assert X_df.shape[0] == 307511
+        gc.collect()
+    with gen_avg_buro(bureau, bureau_bal) as df:
+        X_df = X_df.merge(right=df, how='left', on='SK_ID_CURR')
+        X_test_df = X_test_df.merge(right=df, how='left', on='SK_ID_CURR')
+        print('avg_buro', X_df.shape)
+        assert X_df.shape[0] == 307511
+        gc.collect()
+    with gen_pos_cash_features(pos_cash) as df:
+        X_df = X_df.merge(right=df, how='left', on='SK_ID_CURR')
+        X_test_df = X_test_df.merge(right=df, how='left', on='SK_ID_CURR')
+        print('pos_cash_features', X_df.shape)
+        assert X_df.shape[0] == 307511
+        gc.collect()
+    with gen_agg_pos_cash(pos_cash) as df:
+        X_df = X_df.merge(right=df, how='left', on='SK_ID_CURR')
+        X_test_df = X_test_df.merge(right=df, how='left', on='SK_ID_CURR')
+        print('agg_pos_cash', X_df.shape)
+        assert X_df.shape[0] == 307511
+        gc.collect()
+    with gen_mean_pos_cash(pos_cash) as df:
+        X_df = X_df.merge(right=df, how='left', on='SK_ID_CURR')
+        X_test_df = X_test_df.merge(right=df, how='left', on='SK_ID_CURR')
+        print('pos_cash', X_df.shape)
+        assert X_df.shape[0] == 307511
+        gc.collect()
+    with gen_avg_credit_card_bal(credit_card_bal) as df:
+        X_df = X_df.merge(right=df, how='left', on='SK_ID_CURR')
+        X_test_df = X_test_df.merge(right=df, how='left', on='SK_ID_CURR')
+        print('avg_credit_card_bal', X_df.shape)
+        assert X_df.shape[0] == 307511
+        gc.collect()
+    with gen_agg_credit_card_bal(credit_card_bal) as df:
+        X_df = X_df.merge(right=df, how='left', on='SK_ID_CURR')
+        X_test_df = X_test_df.merge(right=df, how='left', on='SK_ID_CURR')
+        print('agg_credit_card_bal', X_df.shape)
+        assert X_df.shape[0] == 307511
+        gc.collect()
+    with gen_credit_card_bal(credit_card_bal) as df:
+        X_df = X_df.merge(right=df, how='left', on='SK_ID_CURR')
+        X_test_df = X_test_df.merge(right=df, how='left', on='SK_ID_CURR')
+        print('credit_card_bal', X_df.shape)
+        assert X_df.shape[0] == 307511
+        gc.collect()
+    with gen_agg_prev(prev) as df:
+        X_df = X_df.merge(right=df, how='left', on='SK_ID_CURR')
+        X_test_df = X_test_df.merge(right=df, how='left', on='SK_ID_CURR')
+        print('agg_prev', X_df.shape)
+        assert X_df.shape[0] == 307511
+        gc.collect()
+    with gen_avg_prev(prev) as df:
+        X_df = X_df.merge(right=df, how='left', on='SK_ID_CURR')
+        X_test_df = X_test_df.merge(right=df, how='left', on='SK_ID_CURR')
+        print('avg_prev', X_df.shape)
+        assert X_df.shape[0] == 307511
+        gc.collect()
+    with gen_agg_installments(installment_payment) as df:
+        X_df = X_df.merge(right=df, how='left', on='SK_ID_CURR')
+        X_test_df = X_test_df.merge(right=df, how='left', on='SK_ID_CURR')
+        print('agg_installments', X_df.shape)
+        assert X_df.shape[0] == 307511
+        gc.collect()
+    with gen_avg_payments(installment_payment) as df:
+        X_df = X_df.merge(right=df, how='left', on='SK_ID_CURR')
+        X_test_df = X_test_df.merge(right=df, how='left', on='SK_ID_CURR')
+        print('avg_payments', X_df.shape)
+        assert X_df.shape[0] == 307511
+        gc.collect()
+
+    return X_df, X_test_df
