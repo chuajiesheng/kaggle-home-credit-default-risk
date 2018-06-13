@@ -4,6 +4,7 @@ from sklearn.preprocessing import MinMaxScaler, LabelEncoder
 import os
 import gc
 from multiprocessing import cpu_count
+from joblib import Parallel, delayed
 
 DATA_DIR = '{}/data'.format(os.getcwd())
 SUBMISSION_DIR = '{}/submission'.format(os.getcwd())
@@ -532,7 +533,7 @@ def gen_avg_payments(installment_payment_df):
     return avg_payments.merge(right=avg_payments2, how='left', on='SK_ID_CURR').merge(right=avg_payments3, how='left', on='SK_ID_CURR')
 
 
-def gen_feature():
+def gen_feature(n_jobs=5, verbose=5):
     feature_mapping = [
         (delayed(gen_relative_calculation)(train_test)),
         (delayed(gen_relative_calculation)(train_test)),
@@ -558,6 +559,7 @@ def gen_feature():
         (delayed(gen_agg_installments)(installment_payment)),
         (delayed(gen_avg_payments)(installment_payment)),
     ]
+    return Parallel(n_jobs=n_jobs, verbose=verbose)(feature_mapping)
 
 
 def gen_all_features(X_df, X_test_df):
