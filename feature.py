@@ -313,12 +313,13 @@ def gen_avg_prolong(bureau_df):
 
 
 def gen_avg_buro(bureau_df, bureau_bal_df):
+    bureau_bal_df = bureau_bal_df.copy()
     buro_counts = bureau_bal_df.groupby('SK_ID_BUREAU')['STATUS'].value_counts(normalize=False)
     buro_counts_unstacked = buro_counts.unstack('STATUS')
     buro_counts_unstacked.columns = ['STATUS_0', 'STATUS_1', 'STATUS_2', 'STATUS_3', 'STATUS_4', 'STATUS_5', 'STATUS_C',
                                      'STATUS_X', ]
 
-    bureau_df = bureau_df.join(buro_counts_unstacked, how='left', on='SK_ID_BUREAU')
+    bureau_df = bureau_df.copy().join(buro_counts_unstacked, how='left', on='SK_ID_BUREAU')
     buro_cat_features = [bcol for bcol in bureau_df.columns if bureau_df[bcol].dtype == 'object']
     bureau_df = pd.get_dummies(bureau_df, columns=buro_cat_features)
 
@@ -413,6 +414,7 @@ def gen_avg_credit_card_bal(credit_card_bal_df):
 
 
 def gen_agg_credit_card_bal(credit_card_bal_df):
+    credit_card_bal_df = credit_card_bal_df.copy()
     credit_card_bal_agg = credit_card_bal_df.groupby('SK_ID_CURR').agg(['min', 'max', 'sum', 'var'])
     credit_card_bal_agg.columns = pd.Index([e[0] + "_" + e[1].upper() for e in credit_card_bal_agg.columns.tolist()])
     credit_card_bal_agg['CC_COUNT'] = credit_card_bal.groupby('SK_ID_CURR').size()
@@ -520,6 +522,8 @@ def gen_agg_installments(installment_payment_df):
 
 
 def gen_avg_payments(installment_payment_df):
+    installment_payment_df = installment_payment_df.copy()
+
     avg_payments = installment_payment_df.groupby('SK_ID_CURR').mean()
     del avg_payments['SK_ID_PREV']
     avg_payments.columns = ['MEAN_OF_{}'.format(c) for c in avg_payments.columns]
