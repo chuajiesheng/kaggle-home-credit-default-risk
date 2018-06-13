@@ -51,7 +51,7 @@ X_test = train_test.iloc[X.shape[0]:, ]
 
 
 def gen_relative_calculation(train_test_df):
-    source_features = ['DAYS_EMPLOYED', 'DAYS_BIRTH', 'AMT_INCOME_TOTAL', 'AMT_CREDIT', 'CNT_FAM_MEMBERS', 'AMT_ANNUITY', 'AMT_INCOME_TOTAL']
+    source_features = ['DAYS_EMPLOYED', 'DAYS_BIRTH', 'AMT_INCOME_TOTAL', 'AMT_CREDIT', 'CNT_FAM_MEMBERS', 'AMT_ANNUITY']
     application_df = train_test_df[['SK_ID_CURR'] + source_features].copy()
 
     application_df['DAYS_EMPLOYED'].replace(365243, np.nan, inplace=True)
