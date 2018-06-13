@@ -534,98 +534,29 @@ def gen_avg_payments(installment_payment_df):
 
 def gen_feature():
     feature_mapping = [
-        {
-            'func': gen_relative_calculation,
-            'args': train_test
-        },
-        {
-            'func': gen_relative_calculation,
-            'args': train_test,
-        },
-        {
-            'func': gen_prev_installment_feature,
-            'args': installment_payment,
-        },
-        {
-            'func': gen_bur_month_balance,
-            'args': (bureau, bureau_bal),
-        },
-        {
-            'func': gen_credit_variety,
-            'args': bureau,
-        },
-        {
-            'func': gen_bureau_active,
-            'args': bureau,
-        },
-        {
-            'func': gen_day_credit_group,
-            'args': bureau,
-        },
-        {
-            'func': gen_bureau_credit_time,
-            'args': bureau,
-        },
-        {
-            'func': gen_loan_count,
-            'args': bureau,
-        },
-        {
-            'func': gen_cust_debt_to_credit,
-            'args': bureau,
-        },
-        {
-            'func': gen_cust_overdue_debt,
-            'args': bureau,
-        },
-        {
-            'func': gen_avg_prolong,
-            'args': bureau,
-        },
-        {
-            'func': gen_avg_buro,
-            'args': (bureau, bureau_bal),
-        },
-        {
-            'func': gen_pos_cash_features,
-            'args': pos_cash,
-        },
-        {
-            'func': gen_agg_pos_cash,
-            'args': pos_cash,
-        },
-        {
-            'func': gen_mean_pos_cash,
-            'args': pos_cash,
-        },
-        {
-            'func': gen_avg_credit_card_bal,
-            'args': credit_card_bal,
-        },
-        {
-            'func': gen_agg_credit_card_bal,
-            'args': credit_card_bal,
-        },
-        {
-            'func': gen_credit_card_bal,
-            'args': credit_card_bal,
-        },
-        {
-            'func': gen_agg_prev,
-            'args': prev,
-        },
-        {
-            'func': gen_avg_prev,
-            'args': prev,
-        },
-        {
-            'func': gen_agg_installments,
-            'args': installment_payment,
-        },
-        {
-            'func': gen_avg_payments,
-            'args': installment_payment,
-        }
+        (delayed(gen_relative_calculation)(train_test)),
+        (delayed(gen_relative_calculation)(train_test)),
+        (delayed(gen_prev_installment_feature)(installment_payment)),
+        (delayed(gen_bur_month_balance)(bureau, bureau_bal)),
+        (delayed(gen_credit_variety)(bureau)),
+        (delayed(gen_bureau_active)(bureau)),
+        (delayed(gen_day_credit_group)(bureau)),
+        (delayed(gen_bureau_credit_time)(bureau)),
+        (delayed(gen_loan_count)(bureau)),
+        (delayed(gen_cust_debt_to_credit)(bureau)),
+        (delayed(gen_cust_overdue_debt)(bureau)),
+        (delayed(gen_avg_prolong)(bureau)),
+        (delayed(gen_avg_buro)(bureau, bureau_bal)),
+        (delayed(gen_pos_cash_features)(pos_cash)),
+        (delayed(gen_agg_pos_cash)(pos_cash)),
+        (delayed(gen_mean_pos_cash)(pos_cash)),
+        (delayed(gen_avg_credit_card_bal)(credit_card_bal)),
+        (delayed(gen_agg_credit_card_bal)(credit_card_bal)),
+        (delayed(gen_credit_card_bal)(credit_card_bal)),
+        (delayed(gen_agg_prev)(prev)),
+        (delayed(gen_avg_prev)(prev)),
+        (delayed(gen_agg_installments)(installment_payment)),
+        (delayed(gen_avg_payments)(installment_payment)),
     ]
 
 
