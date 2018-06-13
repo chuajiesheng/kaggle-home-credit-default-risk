@@ -246,6 +246,7 @@ def gen_loan_count(bureau_df):
 
 
 def gen_cust_debt_to_credit(bureau_df):
+    bureau_df = bureau_df.copy()
     bureau_df['AMT_CREDIT_SUM_DEBT'] = bureau_df['AMT_CREDIT_SUM_DEBT'].fillna(0)
     bureau_df['AMT_CREDIT_SUM'] = bureau_df['AMT_CREDIT_SUM'].fillna(0)
     cust_debt = bureau_df[['SK_ID_CURR', 'AMT_CREDIT_SUM_DEBT']].groupby(by=['SK_ID_CURR'])[
@@ -267,6 +268,7 @@ def gen_cust_debt_to_credit(bureau_df):
 
 
 def gen_cust_overdue_debt(bureau_df):
+    bureau_df = bureau_df.copy()
     bureau_df['AMT_CREDIT_SUM_DEBT'] = bureau_df['AMT_CREDIT_SUM_DEBT'].fillna(0)
     bureau_df['AMT_CREDIT_SUM_OVERDUE'] = bureau_df['AMT_CREDIT_SUM_OVERDUE'].fillna(0)
     cust_debt = bureau_df[['SK_ID_CURR', 'AMT_CREDIT_SUM_DEBT']].groupby(by=['SK_ID_CURR'])[
@@ -289,12 +291,13 @@ def gen_cust_overdue_debt(bureau_df):
 
 
 def gen_avg_prolong(bureau_df):
-    global avg_prolong
+    bureau_df = bureau_df.copy()
     bureau_df['CNT_CREDIT_PROLONG'] = bureau_df['CNT_CREDIT_PROLONG'].fillna(0)
     avg_prolong = bureau_df[['SK_ID_CURR', 'CNT_CREDIT_PROLONG']].groupby(by=['SK_ID_CURR'])[
         'CNT_CREDIT_PROLONG'].mean().reset_index().rename(index=str,
                                                           columns={'CNT_CREDIT_PROLONG': 'AVG_CREDITDAYS_PROLONGED'})
     assert len(list(avg_prolong.columns)) == 2
+    return avg_prolong
 
 
 #
