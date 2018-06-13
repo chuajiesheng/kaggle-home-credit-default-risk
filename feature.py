@@ -52,7 +52,7 @@ X_test = train_test.iloc[X.shape[0]:, ]
 
 
 def gen_relative_calculation(train_test_df):
-    source_features = ['DAYS_EMPLOYED', 'DAYS_BIRTH', 'AMT_INCOME_TOTAL', 'AMT_CREDIT', 'CNT_FAM_MEMBERS', 'AMT_ANNUITY']
+    source_features = ['DAYS_EMPLOYED', 'DAYS_BIRTH', 'AMT_INCOME_TOTAL', 'AMT_CREDIT', 'CNT_FAM_MEMBERS', 'AMT_ANNUITY', 'CNT_CHILDREN']
     application_df = train_test_df[['SK_ID_CURR'] + source_features].copy()
 
     application_df['DAYS_EMPLOYED'].replace(365243, np.nan, inplace=True)
@@ -60,6 +60,12 @@ def gen_relative_calculation(train_test_df):
     application_df['INCOME_CREDIT_PERC'] = application_df['AMT_INCOME_TOTAL'] / application_df['AMT_CREDIT']
     application_df['INCOME_PER_PERSON'] = application_df['AMT_INCOME_TOTAL'] / application_df['CNT_FAM_MEMBERS']
     application_df['ANNUITY_INCOME_PERC'] = application_df['AMT_ANNUITY'] / application_df['AMT_INCOME_TOTAL']
+
+    application_df['LOAN_INCOME_RATIO'] = application_df['AMT_CREDIT'] / application_df['AMT_INCOME_TOTAL']
+    application_df['ANNUITY_LENGTH'] = application_df['AMT_CREDIT'] / application_df['AMT_ANNUITY']
+    application_df['WORKING_LIFE_RATIO'] = application_df['DAYS_EMPLOYED'] / application_df['DAYS_BIRTH']
+    application_df['INCOME_PER_FAM'] = application_df['AMT_INCOME_TOTAL'] / application_df['CNT_FAM_MEMBERS']
+    application_df['CHILDREN_RATIO'] = application_df['CNT_CHILDREN'] / application_df['CNT_FAM_MEMBERS']
 
     for f in source_features:
         del application_df[f]
