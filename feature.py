@@ -54,12 +54,35 @@ print('finished reading file')
 
 categorical_features = [col for col in X.columns if X[col].dtype == 'object']
 
-one_hot_df = pd.concat([X, X_test])
-one_hot_df = pd.get_dummies(one_hot_df, columns=categorical_features)
+train_test = pd.concat([X, X_test])
+train_test = pd.get_dummies(train_test, columns=categorical_features)
 
-X = one_hot_df.iloc[:X.shape[0], :]
-X_test = one_hot_df.iloc[X.shape[0]:, ]
+X = train_test.iloc[:X.shape[0], :]
+X_test = train_test.iloc[X.shape[0]:, ]
 
+
+def gen_relative_calculation(train_test_df):
+    source_features = ['DAYS_EMPLOYED', 'DAYS_BIRTH', 'AMT_INCOME_TOTAL', 'AMT_CREDIT', 'CNT_FAM_MEMBERS', 'AMT_ANNUITY', 'AMT_INCOME_TOTAL']
+    application_df = train_test_df[['SK_ID_CURR'] + source_features].copy()
+
+    application_df['DAYS_EMPLOYED'].replace(365243, np.nan, inplace=True)
+    application_df['DAYS_EMPLOYED_PERC'] = application_df['DAYS_EMPLOYED'] / application_df['DAYS_BIRTH']
+    application_df['INCOME_CREDIT_PERC'] = application_df['AMT_INCOME_TOTAL'] / application_df['AMT_CREDIT']
+    application_df['INCOME_PER_PERSON'] = application_df['AMT_INCOME_TOTAL'] / application_df['CNT_FAM_MEMBERS']
+    application_df['ANNUITY_INCOME_PERC'] = application_df['AMT_ANNUITY'] / application_df['AMT_INCOME_TOTAL']
+
+    for f in source_features:
+        del application_df[f]
+
+    return application_df
+
+
+with gen_relative_calculation(train_test) as df:
+    X = X.merge(right=df, how='left', on='SK_ID_CURR')
+    X_test = X_test.merge(right=df, how='left', on='SK_ID_CURR')
+    print('gen_relative_calculation', X.shape)
+    assert X.shape[0] == 307511
+    gc.collect()
 #
 # Generated features from previous application
 #
@@ -109,6 +132,44 @@ with gen_prev_installment_feature(installment_payment) as df:
 #     - Monthly balances of previous credits in Credit Bureau.
 #     - This table has one row for each month of history of every previous credit reported to Credit Bureau – i.e the table has (#loans in sample * # of relative previous credits * # of months where we have some history observable for the previous credits) rows.
 #
+
+def gen_bur_month_balance(bureau_df, bureau_bal_df):
+    agg_by = {'MONTHS_BALANCE': ['min', 'max', 'size']}
+    bureau_bal_agg = bureau_bal_df.copy().groupby('SK_ID_BUREAU').agg(agg_by)
+    bureau_bal_agg.columns = pd.Index([e[0] + "_" + e[1].upper() for e in bureau_bal_agg.columns.tolist()])
+
+    bureau_agg = bureau_df.copy().join(bureau_bal_agg, how='left', on='SK_ID_BUREAU')
+    bureau_agg.drop(columns='SK_ID_BUREAU', inplace=True)
+
+    agg_by = {
+        'DAYS_CREDIT': ['min', 'max', 'mean', 'var'],
+        'CREDIT_DAY_OVERDUE': ['max', 'mean'],
+        'DAYS_CREDIT_ENDDATE': ['min', 'max', 'mean'],
+        'AMT_CREDIT_MAX_OVERDUE': ['mean'],
+        'CNT_CREDIT_PROLONG': ['sum'],
+        'AMT_CREDIT_SUM': ['max', 'mean', 'sum'],
+        'AMT_CREDIT_SUM_DEBT': ['max', 'mean', 'sum'],
+        'AMT_CREDIT_SUM_OVERDUE': ['mean'],
+        'AMT_CREDIT_SUM_LIMIT': ['mean', 'sum'],
+        'DAYS_CREDIT_UPDATE': ['min', 'max', 'mean'],
+        'AMT_ANNUITY': ['max', 'mean'],
+        'MONTHS_BALANCE_MIN': ['min'],
+        'MONTHS_BALANCE_MAX': ['max'],
+        'MONTHS_BALANCE_SIZE': ['mean', 'sum']
+    }
+    del bureau_agg['CREDIT_ACTIVE'], bureau_agg['CREDIT_CURRENCY'], bureau_agg['CREDIT_TYPE']
+    bureau_agg = bureau_agg.groupby('SK_ID_CURR').agg(agg_by)
+    bureau_agg.columns = pd.Index([e[0] + "_" + e[1].upper() for e in bureau_agg.columns.tolist()])
+    return bureau_agg.reset_index()
+
+
+with gen_bur_month_balance(bureau, bureau_bal) as df:
+    X = X.merge(right=df, how='left', on='SK_ID_CURR')
+    X_test = X_test.merge(right=df, how='left', on='SK_ID_CURR')
+    print('bur_month_balance', X.shape)
+    assert X.shape[0] == 307511
+    gc.collect()
+
 
 #
 # credit_variety
@@ -166,6 +227,7 @@ with gen_bureau_active(bureau) as df:
 #
 # day_credit_group
 #
+
 
 def gen_day_credit_group(bureau_df):
     day_credit_group = bureau_df[['SK_ID_CURR', 'SK_ID_BUREAU', 'DAYS_CREDIT']].groupby(by=['SK_ID_CURR'])
@@ -250,6 +312,7 @@ with gen_loan_count(bureau) as df:
 # cust_debt_to_credit
 #
 
+
 def gen_cust_debt_to_credit(bureau_df):
     bureau_df['AMT_CREDIT_SUM_DEBT'] = bureau_df['AMT_CREDIT_SUM_DEBT'].fillna(0)
     bureau_df['AMT_CREDIT_SUM'] = bureau_df['AMT_CREDIT_SUM'].fillna(0)
@@ -329,17 +392,10 @@ with gen_avg_prolong(bureau) as df:
 
 
 def gen_avg_buro(bureau_df, bureau_bal_df):
-    buro_grouped_size = bureau_bal_df.groupby('SK_ID_BUREAU')['MONTHS_BALANCE'].size()
-    buro_grouped_max = bureau_bal_df.groupby('SK_ID_BUREAU')['MONTHS_BALANCE'].max()
-    buro_grouped_min = bureau_bal_df.groupby('SK_ID_BUREAU')['MONTHS_BALANCE'].min()
-
     buro_counts = bureau_bal_df.groupby('SK_ID_BUREAU')['STATUS'].value_counts(normalize=False)
     buro_counts_unstacked = buro_counts.unstack('STATUS')
     buro_counts_unstacked.columns = ['STATUS_0', 'STATUS_1', 'STATUS_2', 'STATUS_3', 'STATUS_4', 'STATUS_5', 'STATUS_C',
                                      'STATUS_X', ]
-    buro_counts_unstacked['MONTHS_COUNT'] = buro_grouped_size
-    buro_counts_unstacked['MONTHS_MIN'] = buro_grouped_min
-    buro_counts_unstacked['MONTHS_MAX'] = buro_grouped_max
 
     bureau_df = bureau_df.join(buro_counts_unstacked, how='left', on='SK_ID_BUREAU')
     buro_cat_features = [bcol for bcol in bureau_df.columns if bureau_df[bcol].dtype == 'object']
@@ -397,6 +453,28 @@ with gen_pos_cash_features(pos_cash) as df:
 #
 
 
+def gen_agg_pos_cash(pos_cash_df):
+    pos_cash_df = pos_cash_df.copy()
+
+    agg_by = {
+        'MONTHS_BALANCE': ['max', 'mean', 'size'],
+        'SK_DPD': ['max', 'mean'],
+        'SK_DPD_DEF': ['max', 'mean']
+    }
+
+    pos_cash_agg = pos_cash_df.copy().groupby('SK_ID_CURR').agg(agg_by)
+    pos_cash_agg.columns = pd.Index([e[0] + "_" + e[1].upper() for e in pos_cash_agg.columns.tolist()])
+    return pos_cash_agg.reset_index()
+
+
+with gen_agg_pos_cash(pos_cash) as df:
+    X = X.merge(right=df, how='left', on='SK_ID_CURR')
+    X_test = X_test.merge(right=df, how='left', on='SK_ID_CURR')
+    print('agg_pos_cash', X.shape)
+    assert X.shape[0] == 307511
+    gc.collect()
+
+
 def gen_mean_pos_cash(pos_cash_df):
     le = LabelEncoder()
     pos_cash_df['NAME_CONTRACT_STATUS'] = le.fit_transform(pos_cash_df['NAME_CONTRACT_STATUS'].astype(str))
@@ -450,6 +528,22 @@ with gen_avg_credit_card_bal(credit_card_bal) as df:
 #
 
 
+def gen_agg_credit_card_bal(credit_card_bal_df):
+    credit_card_bal_agg = credit_card_bal_df.groupby('SK_ID_CURR').agg(['min', 'max', 'sum', 'var'])
+    credit_card_bal_agg.columns = pd.Index([e[0] + "_" + e[1].upper() for e in credit_card_bal_agg.columns.tolist()])
+    credit_card_bal_agg['CC_COUNT'] = credit_card_bal.groupby('SK_ID_CURR').size()
+
+    return credit_card_bal_agg.reset_index()
+
+
+with gen_agg_credit_card_bal(credit_card_bal) as df:
+    X = X.merge(right=df, how='left', on='SK_ID_CURR')
+    X_test = X_test.merge(right=df, how='left', on='SK_ID_CURR')
+    print('agg_credit_card_bal', X.shape)
+    assert X.shape[0] == 307511
+    gc.collect()
+
+
 def gen_credit_card_bal(credit_card_bal_df):
     le = LabelEncoder()
     credit_card_bal_df['NAME_CONTRACT_STATUS'] = le.fit_transform(credit_card_bal_df['NAME_CONTRACT_STATUS'].astype(str))
@@ -481,6 +575,41 @@ with gen_credit_card_bal(credit_card_bal) as df:
 # avg_prev
 #
 
+def gen_agg_prev(prev_df):
+    prev_df = prev_df.copy()
+    prev_df['DAYS_FIRST_DRAWING'].replace(365243, np.nan, inplace=True)
+    prev_df['DAYS_FIRST_DUE'].replace(365243, np.nan, inplace=True)
+    prev_df['DAYS_LAST_DUE_1ST_VERSION'].replace(365243, np.nan, inplace=True)
+    prev_df['DAYS_LAST_DUE'].replace(365243, np.nan, inplace=True)
+    prev_df['DAYS_TERMINATION'].replace(365243, np.nan, inplace=True)
+    prev_df['APP_CREDIT_PERC'] = prev_df['AMT_APPLICATION'] / prev_df['AMT_CREDIT']
+
+    agg_by = {
+        'AMT_ANNUITY': ['min', 'max'],
+        'AMT_APPLICATION': ['min', 'max'],
+        'AMT_CREDIT': ['min', 'max'],
+        'APP_CREDIT_PERC': ['min', 'max', 'var'],
+        'AMT_DOWN_PAYMENT': ['min', 'max'],
+        'AMT_GOODS_PRICE': ['min', 'max'],
+        'HOUR_APPR_PROCESS_START': ['min', 'max'],
+        'RATE_DOWN_PAYMENT': ['min', 'max'],
+        'DAYS_DECISION': ['min', 'max'],
+        'CNT_PAYMENT': ['sum'],
+    }
+
+    prev_agg = prev_df.copy().groupby('SK_ID_CURR').agg(agg_by)
+    prev_agg.columns = pd.Index([e[0] + "_" + e[1].upper() for e in prev_agg.columns.tolist()])
+    return prev_agg.reset_index()
+
+
+with gen_agg_prev(prev) as df:
+    X = X.merge(right=df, how='left', on='SK_ID_CURR')
+    X_test = X_test.merge(right=df, how='left', on='SK_ID_CURR')
+    print('agg_prev', X.shape)
+    assert X.shape[0] == 307511
+    gc.collect()
+
+
 def gen_avg_prev(prev_df):
     prev_cat_features = [pcol for pcol in prev_df.columns if prev_df[pcol].dtype == 'object']
     prev_df = pd.get_dummies(prev_df, columns=prev_cat_features)
@@ -509,6 +638,40 @@ with gen_avg_prev(prev) as df:
 #
 # avg_payments
 #
+
+
+def gen_agg_installments(installment_payment_df):
+    installment_payment_agg = installment_payment_df.copy()
+
+    installment_payment_agg['PAYMENT_PERC'] = installment_payment_agg['AMT_PAYMENT'] / installment_payment_agg['AMT_INSTALMENT']
+    installment_payment_agg['PAYMENT_DIFF'] = installment_payment_agg['AMT_INSTALMENT'] - installment_payment_agg['AMT_PAYMENT']
+    installment_payment_agg['DPD'] = installment_payment_agg['DAYS_ENTRY_PAYMENT'] - installment_payment_agg['DAYS_INSTALMENT']
+    installment_payment_agg['DBD'] = installment_payment_agg['DAYS_INSTALMENT'] - installment_payment_agg['DAYS_ENTRY_PAYMENT']
+    installment_payment_agg['DPD'] = installment_payment_agg['DPD'].apply(lambda x: x if x > 0 else 0)
+    installment_payment_agg['DBD'] = installment_payment_agg['DBD'].apply(lambda x: x if x > 0 else 0)
+
+    agg_by = {
+        'NUM_INSTALMENT_VERSION': ['nunique'],
+        'DPD': ['sum'],
+        'DBD': ['sum'],
+        'PAYMENT_PERC': ['sum', 'var'],
+        'PAYMENT_DIFF': ['sum', 'var'],
+        'AMT_INSTALMENT': ['sum'],
+        'AMT_PAYMENT': ['sum'],
+        'DAYS_ENTRY_PAYMENT': ['sum']
+    }
+
+    installment_payment_agg = installment_payment_agg.groupby('SK_ID_CURR').agg(agg_by)
+    installment_payment_agg.columns = pd.Index([e[0] + "_" + e[1].upper() for e in installment_payment_agg.columns.tolist()])
+    return installment_payment_agg.reset_index()
+
+
+with gen_agg_installments(installment_payment) as df:
+    X = X.merge(right=df, how='left', on='SK_ID_CURR')
+    X_test = X_test.merge(right=df, how='left', on='SK_ID_CURR')
+    print('agg_installments', X.shape)
+    assert X.shape[0] == 307511
+    gc.collect()
 
 
 def gen_avg_payments(installment_payment_df):
