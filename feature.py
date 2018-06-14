@@ -1,3 +1,5 @@
+from multiprocessing import cpu_count
+
 import pandas as pd
 import numpy as np
 from sklearn.preprocessing import MinMaxScaler, LabelEncoder
@@ -19,7 +21,7 @@ SUBMISSION_FILE = os.path.join(DATA_DIR, 'sample_submission.csv.zip')
 ID_COLUMN = 'SK_ID_CURR'
 LABEL_COLUMN = 'TARGET'
 
-n_jobs = 5
+n_jobs = cpu_count()
 verbose = 5
 
 X = pd.read_csv(INPUT_FILE)
