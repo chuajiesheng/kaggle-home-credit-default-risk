@@ -316,6 +316,9 @@ def gen_avg_buro(bureau_df, bureau_bal_df):
     avg_buro.columns = ['SK_ID_BUREAU'] + ['MEAN_OF_{}'.format(c) for c in avg_buro.columns[1:]]
     avg_buro['BUREAU_COUNT'] = bureau_df[['SK_ID_BUREAU', 'SK_ID_CURR']].groupby('SK_ID_CURR').count()['SK_ID_BUREAU']
 
+    avg_buro = avg_buro.reset_index()
+    assert 'SK_ID_CURR' in list(avg_buro.columns)
+
     del avg_buro['SK_ID_BUREAU']
     return avg_buro
 
@@ -394,7 +397,7 @@ def gen_avg_credit_card_bal(credit_card_bal_df):
     avg_credit_card_bal = credit_card_bal_df.copy().drop(credit_card_cat_features, axis=1).groupby('SK_ID_CURR').mean()
     del avg_credit_card_bal['SK_ID_PREV']
     avg_credit_card_bal.columns = ['MEAN_OF_{}'.format(c) for c in avg_credit_card_bal.columns]
-    return avg_credit_card_bal
+    return avg_credit_card_bal.reset_index()
 
 #
 # credit_card_bal
@@ -469,6 +472,9 @@ def gen_avg_prev(prev_df):
     cnt_prev = prev_df[['SK_ID_CURR', 'SK_ID_PREV']].groupby('SK_ID_CURR').count()
     avg_prev['COUNT_OF_SK_ID_PREV'] = cnt_prev['SK_ID_PREV']
     del avg_prev['SK_ID_PREV']
+
+    avg_prev = avg_prev.reset_index()
+    assert 'SK_ID_CURR' in list(avg_prev.columns)
 
     return avg_prev
 
