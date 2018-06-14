@@ -338,6 +338,10 @@ def gen_pos_cash_features(pos_cash_df):
     count_pos_cash = pos_cash_df[['SK_ID_CURR', 'SK_ID_PREV']].groupby('SK_ID_CURR').count()
     count_pos_cash.columns = ['COUNT_OF_{}'.format(c) for c in count_pos_cash.columns]
 
+    max_pos_cash = max_pos_cash.reset_index()
+    avg_pos_cash = avg_pos_cash.reset_index()
+    count_pos_cash = count_pos_cash.reset_index()
+
     return max_pos_cash.merge(right=avg_pos_cash, how='left', on='SK_ID_CURR').merge(right=count_pos_cash, how='left', on='SK_ID_CURR')
 #
 # pos_cash
