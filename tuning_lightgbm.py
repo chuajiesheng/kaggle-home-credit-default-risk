@@ -7,16 +7,12 @@ import warnings
 import utility.expand_grid as expand_grid
 import fit_models as fit_models
 
-from feature import generate_features
-
 warnings.filterwarnings('ignore')
 
 n_threads = n_jobs = round(cpu_count() * 2 * 0.75)
-dfs = generate_features(n_jobs=n_jobs)
 
-X = dfs['X']
-X_test = dfs['X_test']
-y = dfs['y']
+# Import feature.py as a live script
+import feature
 
 #
 # Delete customer Id
