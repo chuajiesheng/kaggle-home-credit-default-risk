@@ -118,7 +118,7 @@ def gen_bur_month_balance(bureau_df, bureau_bal_df):
 
     bureau_agg = bureau_df.copy().join(bureau_bal_agg, how='left', on='SK_ID_BUREAU')
     bureau_agg = bureau_agg.reset_index()
-    bureau_agg.drop(['SK_ID_BUREAU'], inplace=True)
+    del bureau_agg['SK_ID_BUREAU']
 
     agg_by = {
         'DAYS_CREDIT': ['min', 'max', 'mean', 'var'],
