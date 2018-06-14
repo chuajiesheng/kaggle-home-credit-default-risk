@@ -117,6 +117,7 @@ def gen_bur_month_balance(bureau_df, bureau_bal_df):
     bureau_bal_agg.columns = pd.Index([e[0] + "_" + e[1].upper() for e in bureau_bal_agg.columns.tolist()])
 
     bureau_agg = bureau_df.copy().join(bureau_bal_agg, how='left', on='SK_ID_BUREAU')
+    bureau_agg = bureau_agg.reset_index()
     bureau_agg.drop(['SK_ID_BUREAU'], inplace=True)
 
     agg_by = {
