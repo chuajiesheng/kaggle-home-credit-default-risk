@@ -55,7 +55,7 @@ param_grid = {
     'boosting': ['gbdt'],
 
     # Tree-based parameters
-    'num_leaves': [80],
+    'num_leaves': [31],
     'min_data_in_leaf': [20],
     'max_depth': [-1],
     'max_bin': [255],  # max number of bins that feature values will be bucketed in
