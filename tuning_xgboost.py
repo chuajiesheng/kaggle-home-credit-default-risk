@@ -19,7 +19,7 @@ LABEL_COLUMN = 'TARGET'
 
 n_threads = n_jobs = round(cpu_count() * 2 * 0.75)
 n_jobs = cpu_count()
-verbose = 5
+verbose = 1
 
 X, y, X_test, train_test, bureau, bureau_bal, prev, credit_card_bal, pos_cash, installment_payment = f.read_dataset()
 feature_mapping = f.get_feature_mapping(train_test, bureau, bureau_bal, prev, credit_card_bal, pos_cash, installment_payment)
@@ -99,7 +99,7 @@ param_grid, _ = fit_models.fit_xgboost(
     cv_iterations=1,
     cv_folds=5,
     nthread=n_threads,
-    verbose=0
+    verbose=verbose
 )
 
 param_grid['max_depth'] = range(3, 20, 2)
@@ -115,7 +115,7 @@ param_grid, _ = fit_models.fit_xgboost(
     cv_iterations=5,
     cv_folds=5,
     nthread=n_threads,
-    verbose=0
+    verbose=verbose
 )
 
 # Fine search
@@ -142,7 +142,7 @@ param_grid, _ = fit_models.fit_xgboost(
     cv_iterations=5,
     cv_folds=5,
     nthread=n_threads,
-    verbose=0
+    verbose=verbose
 )
 
 param_grid['gamma'] = [x / 10.0 for x in range(0, 15)]
@@ -157,7 +157,7 @@ param_grid, _ = fit_models.fit_xgboost(
     cv_iterations=5,
     cv_folds=5,
     nthread=n_threads,
-    verbose=0
+    verbose=verbose
 )
 
 # Coarse search
@@ -174,7 +174,7 @@ param_grid, _ = fit_models.fit_xgboost(
     cv_iterations=5,
     cv_folds=5,
     nthread=n_threads,
-    verbose=0
+    verbose=verbose
 )
 
 # Fine search
@@ -203,7 +203,7 @@ param_grid, _ = fit_models.fit_xgboost(
     cv_iterations=5,
     cv_folds=5,
     nthread=n_threads,
-    verbose=0
+    verbose=verbose
 )
 
 param_grid['reg_lambda'] = [0, 1e-5, 0.001, 0.01, 0.05, 0.1, 0.5, 1, 3, 5, 10, 100]
@@ -218,7 +218,7 @@ param_grid, _ = fit_models.fit_xgboost(
     cv_iterations=5,
     cv_folds=5,
     nthread=n_threads,
-    verbose=0
+    verbose=verbose
 )
 
 param_grid['reg_alpha'] = [0, 1e-5, 0.001, 0.005, 0.01, 0.05, 0.1, 1, 3, 5, 10, 100]
@@ -233,7 +233,7 @@ param_grid, _ = fit_models.fit_xgboost(
     cv_iterations=5,
     cv_folds=5,
     nthread=n_threads,
-    verbose=0
+    verbose=verbose
 )
 
 print(param_grid)
@@ -264,7 +264,7 @@ param_grid, _ = fit_models.fit_xgboost(
     cv_iterations=5,
     cv_folds=5,
     nthread=n_threads,
-    verbose=0
+    verbose=verbose
 )
 
 
@@ -282,7 +282,7 @@ param_grid, pred = fit_models.fit_xgboost(
     cv_iterations=5,
     cv_folds=5,
     nthread=n_threads,
-    verbose=0
+    verbose=verbose
 )
 
 best_param_index = param_table["Score_Weighted"].idxmax()
