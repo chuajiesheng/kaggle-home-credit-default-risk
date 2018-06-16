@@ -73,7 +73,7 @@ param_grid = {
     'n_estimators': [2000],  # this specify the upper bound, we use early stop to find the optimal value
 
     # Tree-based parameters
-    'max_depth': [-1],
+    'max_depth': [0],
     'min_child_weight': [1],
     'gamma': [0],
     'subsample': [0.8],
