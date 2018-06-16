@@ -403,7 +403,7 @@ def gen_agg_credit_card_bal(credit_card_bal_df):
     credit_card_bal_df = credit_card_bal_df.copy()
     credit_card_bal_agg = credit_card_bal_df.groupby('SK_ID_CURR').agg(['min', 'max', 'sum', 'var'])
     credit_card_bal_agg.columns = pd.Index([e[0] + "_" + e[1].upper() for e in credit_card_bal_agg.columns.tolist()])
-    credit_card_bal_agg['CC_COUNT'] = credit_card_bal.groupby('SK_ID_CURR').size()
+    credit_card_bal_agg['CC_COUNT'] = credit_card_bal_df.groupby('SK_ID_CURR').size()
 
     return credit_card_bal_agg.reset_index()
 
