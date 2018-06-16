@@ -15,7 +15,7 @@ LABEL_COLUMN = 'TARGET'
 
 n_threads = n_jobs = round(cpu_count() * 2 * 0.75)
 n_jobs = cpu_count()
-verbose = 5
+verbose = 1
 
 X, y, X_test, train_test, bureau, bureau_bal, prev, credit_card_bal, pos_cash, installment_payment = f.read_dataset()
 feature_mapping = f.get_feature_mapping(train_test, bureau, bureau_bal, prev, credit_card_bal, pos_cash, installment_payment)
@@ -100,7 +100,7 @@ param_grid, _ = fit_models.fit_lightgbm(
     cv_iterations=1,
     cv_folds=5,
     nthread=n_threads,
-    verbose=0
+    verbose=verbose
 )
 
 #
@@ -120,7 +120,7 @@ param_grid, _ = fit_models.fit_lightgbm(
     cv_iterations=5,
     cv_folds=5,
     nthread=n_threads,
-    verbose=0
+    verbose=verbose
 )
 
 current_num_leaves = param_grid['num_leaves'][0]
@@ -148,7 +148,7 @@ param_grid, _ = fit_models.fit_lightgbm(
     cv_iterations=5,
     cv_folds=5,
     nthread=n_threads,
-    verbose=0
+    verbose=verbose
 )
 
 #
@@ -172,7 +172,7 @@ param_grid, _ = fit_models.fit_lightgbm(
     cv_iterations=5,
     cv_folds=5,
     nthread=n_threads,
-    verbose=0
+    verbose=verbose
 )
 
 #
@@ -190,7 +190,7 @@ param_grid, _ = fit_models.fit_lightgbm(
     cv_iterations=5,
     cv_folds=5,
     nthread=n_threads,
-    verbose=0
+    verbose=verbose
 )
 
 #
@@ -209,7 +209,7 @@ param_grid, _ = fit_models.fit_lightgbm(
     cv_iterations=5,
     cv_folds=5,
     nthread=n_threads,
-    verbose=0
+    verbose=verbose
 )
 
 current_bagging_fraction = param_grid['bagging_fraction'][0]
@@ -237,7 +237,7 @@ param_grid, _ = fit_models.fit_lightgbm(
     cv_iterations=5,
     cv_folds=5,
     nthread=n_threads,
-    verbose=0
+    verbose=verbose
 )
 
 #
@@ -255,7 +255,7 @@ param_grid, _ = fit_models.fit_lightgbm(
     cv_iterations=5,
     cv_folds=5,
     nthread=n_threads,
-    verbose=0
+    verbose=verbose
 )
 
 #
@@ -273,7 +273,7 @@ param_grid, _ = fit_models.fit_lightgbm(
     cv_iterations=5,
     cv_folds=5,
     nthread=n_threads,
-    verbose=0
+    verbose=verbose
 )
 
 #
@@ -293,7 +293,7 @@ param_grid, pred = fit_models.fit_lightgbm(
     cv_iterations=5,
     cv_folds=5,
     nthread=n_threads,
-    verbose=0
+    verbose=verbose
 )
 
 #
