@@ -9,10 +9,25 @@ import fit_models as fit_models
 
 warnings.filterwarnings('ignore')
 
-n_threads = n_jobs = round(cpu_count() * 2 * 0.75)
 
-# Import feature.py as a live script
-import feature
+ID_COLUMN = 'SK_ID_CURR'
+LABEL_COLUMN = 'TARGET'
+
+n_threads = n_jobs = round(cpu_count() * 2 * 0.75)
+n_jobs = cpu_count()
+verbose = 5
+
+X, y, X_test, train_test, bureau, bureau_bal, prev, credit_card_bal, pos_cash, installment_payment = f.read_dataset()
+feature_mapping = f.get_feature_mapping(train_test, bureau, bureau_bal, prev, credit_card_bal, pos_cash, installment_payment)
+features = Parallel(n_jobs=n_jobs, verbose=verbose)(feature_mapping)
+
+for df in features:
+    X = X.merge(right=df, how='left', on=ID_COLUMN)
+    X_test = X_test.merge(right=df, how='left', on=ID_COLUMN)
+    assert X.shape[0] == 307511
+
+print('X.shape', X.shape)
+print('X_test.shape', X_test.shape)
 
 #
 # Delete customer Id
