@@ -1,11 +1,10 @@
-from multiprocessing import cpu_count
-
-import pandas as pd
-import numpy as np
-from sklearn.preprocessing import MinMaxScaler, LabelEncoder
 import os
-from joblib import Parallel, delayed
+import numpy as np
+import pandas as pd
+from joblib import delayed
+from sklearn.preprocessing import LabelEncoder
 
+LABEL_COLUMN = 'TARGET'
 
 DATA_DIR = '{}/data'.format(os.getcwd())
 INPUT_FILE = os.path.join(DATA_DIR, 'application_train.csv.zip')
@@ -18,35 +17,31 @@ POS_CASH_FILE = os.path.join(DATA_DIR, 'POS_CASH_balance.csv.zip')
 INSTALLMENT_PAYMENT_FILE = os.path.join(DATA_DIR, 'installments_payments.csv.zip')
 SUBMISSION_FILE = os.path.join(DATA_DIR, 'sample_submission.csv.zip')
 
-ID_COLUMN = 'SK_ID_CURR'
-LABEL_COLUMN = 'TARGET'
 
-n_jobs = cpu_count()
-verbose = 5
+def read_dataset():
+    X = pd.read_csv(INPUT_FILE)
+    X_test = pd.read_csv(TEST_INPUT_FILE)
 
-X = pd.read_csv(INPUT_FILE)
-X_test = pd.read_csv(TEST_INPUT_FILE)
-y = X[LABEL_COLUMN]
-del X['TARGET']
+    y = X[LABEL_COLUMN]
+    del X['TARGET']
 
-bureau = pd.read_csv(BUREAU_FILE)
-bureau_bal = pd.read_csv(BUREAU_BAL_FILE)
-prev = pd.read_csv(PREV_APPLICATION_FILE)
-credit_card_bal = pd.read_csv(CREDIT_CARD_BAL_FILE)
-pos_cash = pd.read_csv(POS_CASH_FILE)
-installment_payment = pd.read_csv(INSTALLMENT_PAYMENT_FILE)
+    bureau = pd.read_csv(BUREAU_FILE)
+    bureau_bal = pd.read_csv(BUREAU_BAL_FILE)
+    prev = pd.read_csv(PREV_APPLICATION_FILE)
+    credit_card_bal = pd.read_csv(CREDIT_CARD_BAL_FILE)
+    pos_cash = pd.read_csv(POS_CASH_FILE)
+    installment_payment = pd.read_csv(INSTALLMENT_PAYMENT_FILE)
 
-#
-# Feature Generation
-#
+    # Convert categorical features
+    categorical_features = [col for col in X.columns if X[col].dtype == 'object']
 
-categorical_features = [col for col in X.columns if X[col].dtype == 'object']
+    train_test = pd.concat([X, X_test])
+    train_test = pd.get_dummies(train_test, columns=categorical_features)
 
-train_test = pd.concat([X, X_test])
-train_test = pd.get_dummies(train_test, columns=categorical_features)
+    X = train_test.iloc[:X.shape[0], :]
+    X_test = train_test.iloc[X.shape[0]:, ]
 
-X = train_test.iloc[:X.shape[0], :]
-X_test = train_test.iloc[X.shape[0]:, ]
+    return X, y, X_test, train_test, bureau, bureau_bal, prev, credit_card_bal, pos_cash, installment_payment
 
 
 def gen_relative_calculation(train_test_df):
@@ -536,37 +531,29 @@ def gen_avg_payments(installment_payment_df):
     return avg_payments.merge(right=avg_payments2, how='left', on='SK_ID_CURR').merge(right=avg_payments3, how='left', on='SK_ID_CURR')
 
 
-feature_mapping = [
-    (delayed(gen_relative_calculation)(train_test)),
-    (delayed(gen_relative_calculation)(train_test)),
-    (delayed(gen_prev_installment_feature)(installment_payment)),
-    (delayed(gen_bur_month_balance)(bureau, bureau_bal)),
-    (delayed(gen_credit_variety)(bureau)),
-    (delayed(gen_bureau_active)(bureau)),
-    (delayed(gen_day_credit_group)(bureau)),
-    (delayed(gen_bureau_credit_time)(bureau)),
-    (delayed(gen_loan_count)(bureau)),
-    (delayed(gen_cust_debt_to_credit)(bureau)),
-    (delayed(gen_cust_overdue_debt)(bureau)),
-    (delayed(gen_avg_prolong)(bureau)),
-    (delayed(gen_avg_buro)(bureau, bureau_bal)),
-    (delayed(gen_pos_cash_features)(pos_cash)),
-    (delayed(gen_agg_pos_cash)(pos_cash)),
-    (delayed(gen_mean_pos_cash)(pos_cash)),
-    (delayed(gen_avg_credit_card_bal)(credit_card_bal)),
-    (delayed(gen_agg_credit_card_bal)(credit_card_bal)),
-    (delayed(gen_credit_card_bal)(credit_card_bal)),
-    (delayed(gen_agg_prev)(prev)),
-    (delayed(gen_avg_prev)(prev)),
-    (delayed(gen_agg_installments)(installment_payment)),
-    (delayed(gen_avg_payments)(installment_payment)),
-]
-features = Parallel(n_jobs=n_jobs, verbose=verbose)(feature_mapping)
-
-for df in features:
-    X = X.merge(right=df, how='left', on=ID_COLUMN)
-    X_test = X_test.merge(right=df, how='left', on=ID_COLUMN)
-    assert X.shape[0] == 307511
-
-print('X.shape', X.shape)
-print('X_test.shape', X_test.shape)
+def get_feature_mapping(train_test, bureau, bureau_bal, prev, credit_card_bal, pos_cash, installment_payment):
+    return [
+        (delayed(gen_relative_calculation)(train_test)),
+        (delayed(gen_relative_calculation)(train_test)),
+        (delayed(gen_prev_installment_feature)(installment_payment)),
+        (delayed(gen_bur_month_balance)(bureau, bureau_bal)),
+        (delayed(gen_credit_variety)(bureau)),
+        (delayed(gen_bureau_active)(bureau)),
+        (delayed(gen_day_credit_group)(bureau)),
+        (delayed(gen_bureau_credit_time)(bureau)),
+        (delayed(gen_loan_count)(bureau)),
+        (delayed(gen_cust_debt_to_credit)(bureau)),
+        (delayed(gen_cust_overdue_debt)(bureau)),
+        (delayed(gen_avg_prolong)(bureau)),
+        (delayed(gen_avg_buro)(bureau, bureau_bal)),
+        (delayed(gen_pos_cash_features)(pos_cash)),
+        (delayed(gen_agg_pos_cash)(pos_cash)),
+        (delayed(gen_mean_pos_cash)(pos_cash)),
+        (delayed(gen_avg_credit_card_bal)(credit_card_bal)),
+        (delayed(gen_agg_credit_card_bal)(credit_card_bal)),
+        (delayed(gen_credit_card_bal)(credit_card_bal)),
+        (delayed(gen_agg_prev)(prev)),
+        (delayed(gen_avg_prev)(prev)),
+        (delayed(gen_agg_installments)(installment_payment)),
+        (delayed(gen_avg_payments)(installment_payment)),
+    ]
