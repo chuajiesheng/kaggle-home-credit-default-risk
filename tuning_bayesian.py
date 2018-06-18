@@ -88,7 +88,7 @@ def lgb_evaluate(max_bin, min_child_samples, learning_rate, num_leaves, min_chil
 lgbBO = BayesianOptimization(lgb_evaluate, {'max_bin': (2**3, 2**11),
                                             'min_child_samples': (10, 50),
                                             'learning_rate': (0.001, 0.5),
-                                            'num_leaves': (1, 2 ** 10),
+                                            'num_leaves': (2, 2 ** 10),
                                             'min_child_weight': (1, 22),
                                             'colsample_bytree': (0.2, 1),
                                             'max_depth': (5, 15),
