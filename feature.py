@@ -60,6 +60,8 @@ def gen_relative_calculation(train_test_df):
     application_df['INCOME_PER_FAM'] = application_df['AMT_INCOME_TOTAL'] / application_df['CNT_FAM_MEMBERS']
     application_df['CHILDREN_RATIO'] = application_df['CNT_CHILDREN'] / application_df['CNT_FAM_MEMBERS']
 
+    application_df['PAYMENT_RATE'] = application_df['AMT_ANNUITY'] / application_df['AMT_CREDIT']
+
     for f in source_features:
         del application_df[f]
 
