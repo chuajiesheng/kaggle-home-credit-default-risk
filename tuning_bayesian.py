@@ -61,8 +61,8 @@ params = {
 
 def lgb_evaluate(max_bin, min_child_samples, learning_rate, num_leaves, min_child_weight, colsample_bytree, max_depth, subsample, reg_lambda, reg_alpha, min_split_gain):
 
-    params['max_bin'] = max(max_bin, 1)
-    params['min_child_samples'] = max(min_child_samples, 0)
+    params['max_bin'] = int(max(max_bin, 1))
+    params['min_child_samples'] = int(max(min_child_samples, 0))
     params['learning_rate'] = max(learning_rate, 0)
     params['num_leaves'] = int(num_leaves)
     params['min_child_weight'] = int(min_child_weight)
