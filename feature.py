@@ -497,13 +497,13 @@ def gen_agg_installments(installment_payment_df):
 
     agg_by = {
         'NUM_INSTALMENT_VERSION': ['nunique'],
-        'DPD': ['sum'],
-        'DBD': ['sum'],
-        'PAYMENT_PERC': ['sum', 'var'],
-        'PAYMENT_DIFF': ['sum', 'var'],
-        'AMT_INSTALMENT': ['sum'],
-        'AMT_PAYMENT': ['sum'],
-        'DAYS_ENTRY_PAYMENT': ['sum']
+        'DPD': ['max', 'mean', 'sum', 'var'],
+        'DBD': ['max', 'mean', 'sum', 'var'],
+        'PAYMENT_PERC': ['max', 'mean', 'sum', 'var'],
+        'PAYMENT_DIFF': ['max', 'mean', 'sum', 'var'],
+        'AMT_INSTALMENT': ['max', 'mean', 'sum', 'var'],
+        'AMT_PAYMENT': ['max', 'mean', 'sum', 'var'],
+        'DAYS_ENTRY_PAYMENT': ['max', 'mean', 'sum', 'var']
     }
 
     installment_payment_agg = installment_payment_agg.groupby('SK_ID_CURR').agg(agg_by)
