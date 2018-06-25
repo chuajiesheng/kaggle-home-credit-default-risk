@@ -44,7 +44,7 @@ data = lgb.Dataset(X, label=y)
 
 num_rounds = 3000
 random_state = 42
-num_iter = 100
+num_iter = 1000
 init_points = 5
 params = {
     'learning_rate': 0.1,
