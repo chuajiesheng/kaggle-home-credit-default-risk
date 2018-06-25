@@ -75,7 +75,8 @@ def gen_relative_calculation(train_test_df):
 def gen_prev_installment_feature(installment_payment_df):
     sorted_prev = installment_payment_df[['SK_ID_PREV', 'NUM_INSTALMENT_NUMBER']].sort_values(
         ['SK_ID_PREV', 'NUM_INSTALMENT_NUMBER'])
-    compare_to_last = sorted_prev.groupby(by=['SK_ID_PREV'])['NUM_INSTALMENT_NUMBER'].diff().fillna(1)
+    compare_to_last = sorted_prev.groupby(by=['SK_ID_PREV'])['NUM_INSTALMENT_NUMBER'].diff()
+    compare_to_last = compare_to_last.fillna(compare_to_last.mean())
     sorted_prev['COMPARED_TO_LAST'] = compare_to_last
     std_of_installment_seq = sorted_prev[['SK_ID_PREV', 'COMPARED_TO_LAST']].groupby(by=['SK_ID_PREV']).std().reset_index()
     std_of_installment_seq = std_of_installment_seq.rename(index=str,
@@ -85,16 +86,20 @@ def gen_prev_installment_feature(installment_payment_df):
     late_installment = installment_payment_df[
         ['SK_ID_CURR', 'SK_ID_PREV', 'DAYS_INSTALMENT', 'DAYS_ENTRY_PAYMENT']].sort_values(['SK_ID_CURR', 'SK_ID_PREV'])
     late_installment['LATE'] = late_installment['DAYS_INSTALMENT'] - late_installment['DAYS_ENTRY_PAYMENT']
-    late_mean = late_installment[['SK_ID_PREV', 'LATE']].groupby(by=['SK_ID_PREV']).mean().fillna(0).reset_index()
+
+    late_mean = late_installment[['SK_ID_PREV', 'LATE']].groupby(by=['SK_ID_PREV']).mean()
+    late_mean = late_mean.fillna(late_mean.mean()).reset_index()
     late_mean = late_mean.rename(index=str, columns={'LATE': 'MEAN_OF_LATE_INSTALLMENT'})
     prev_installment_feature = prev_installment_feature.merge(right=late_mean, how='left', on='SK_ID_PREV')
     pay_less = installment_payment_df[['SK_ID_CURR', 'SK_ID_PREV', 'AMT_INSTALMENT', 'AMT_PAYMENT']].sort_values(
         ['SK_ID_CURR', 'SK_ID_PREV'])
     pay_less['INSUFFICIENT_PAYMENT'] = pay_less['AMT_INSTALMENT'] - pay_less['AMT_PAYMENT']
-    pay_less = pay_less[['SK_ID_PREV', 'INSUFFICIENT_PAYMENT']].groupby(by=['SK_ID_PREV']).mean().fillna(0).reset_index()
+    pay_less = pay_less[['SK_ID_PREV', 'INSUFFICIENT_PAYMENT']].groupby(by=['SK_ID_PREV']).mean()
+    pay_less = pay_less.fillna(pay_less.mean()).reset_index()
     pay_less = pay_less.rename(index=str, columns={'INSUFFICIENT_PAYMENT': 'MEAN_OF_INSUFFICIENT_PAYMENT'})
     prev_installment_feature = prev_installment_feature.merge(right=pay_less, how='left', on='SK_ID_PREV')
-    prev_installment_feature_by_curr = prev_installment_feature.groupby(by=['SK_ID_CURR']).mean().fillna(0).reset_index()
+    prev_installment_feature_by_curr = prev_installment_feature.groupby(by=['SK_ID_CURR']).mean()
+    prev_installment_feature_by_curr = prev_installment_feature_by_curr.fillna(prev_installment_feature_by_curr.mean()).reset_index()
     del prev_installment_feature_by_curr['SK_ID_PREV']
 
     return prev_installment_feature_by_curr
@@ -187,7 +192,7 @@ def gen_day_credit_group(bureau_df):
         drop=True)
     day_credit_group['DAYS_CREDIT1'] = day_credit_group['DAYS_CREDIT'] * -1
     day_credit_group['DAYS_DIFF'] = day_credit_group.groupby(by=['SK_ID_CURR'])['DAYS_CREDIT1'].diff()
-    day_credit_group['DAYS_DIFF'] = day_credit_group['DAYS_DIFF'].fillna(0).astype('uint32')
+    day_credit_group['DAYS_DIFF'] = day_credit_group['DAYS_DIFF'].fillna(day_credit_group['DAYS_DIFF'].mean()).astype('uint32')
     del day_credit_group['DAYS_CREDIT1'], day_credit_group['DAYS_CREDIT'], day_credit_group['SK_ID_BUREAU']
 
     day_credit_group_mean = day_credit_group.groupby(by=['SK_ID_CURR'])['DAYS_DIFF'].mean()
@@ -243,8 +248,8 @@ def gen_loan_count(bureau_df):
 
 def gen_cust_debt_to_credit(bureau_df):
     bureau_df = bureau_df.copy()
-    bureau_df['AMT_CREDIT_SUM_DEBT'] = bureau_df['AMT_CREDIT_SUM_DEBT'].fillna(0)
-    bureau_df['AMT_CREDIT_SUM'] = bureau_df['AMT_CREDIT_SUM'].fillna(0)
+    bureau_df['AMT_CREDIT_SUM_DEBT'] = bureau_df['AMT_CREDIT_SUM_DEBT'].fillna(bureau_df['AMT_CREDIT_SUM_DEBT'].mean())
+    bureau_df['AMT_CREDIT_SUM'] = bureau_df['AMT_CREDIT_SUM'].fillna(bureau_df['AMT_CREDIT_SUM'].mean())
     cust_debt = bureau_df[['SK_ID_CURR', 'AMT_CREDIT_SUM_DEBT']].groupby(by=['SK_ID_CURR'])[
         'AMT_CREDIT_SUM_DEBT'].sum().reset_index().rename(index=str, columns={'AMT_CREDIT_SUM_DEBT': 'TOTAL_CUSTOMER_DEBT'})
     cust_credit = bureau_df[['SK_ID_CURR', 'AMT_CREDIT_SUM']].groupby(by=['SK_ID_CURR'])[
@@ -264,8 +269,8 @@ def gen_cust_debt_to_credit(bureau_df):
 
 def gen_cust_overdue_debt(bureau_df):
     bureau_df = bureau_df.copy()
-    bureau_df['AMT_CREDIT_SUM_DEBT'] = bureau_df['AMT_CREDIT_SUM_DEBT'].fillna(0)
-    bureau_df['AMT_CREDIT_SUM_OVERDUE'] = bureau_df['AMT_CREDIT_SUM_OVERDUE'].fillna(0)
+    bureau_df['AMT_CREDIT_SUM_DEBT'] = bureau_df['AMT_CREDIT_SUM_DEBT'].fillna(bureau_df['AMT_CREDIT_SUM_DEBT'].mean())
+    bureau_df['AMT_CREDIT_SUM_OVERDUE'] = bureau_df['AMT_CREDIT_SUM_OVERDUE'].fillna(bureau_df['AMT_CREDIT_SUM_OVERDUE'].mean())
     cust_debt = bureau_df[['SK_ID_CURR', 'AMT_CREDIT_SUM_DEBT']].groupby(by=['SK_ID_CURR'])[
         'AMT_CREDIT_SUM_DEBT'].sum().reset_index().rename(index=str, columns={'AMT_CREDIT_SUM_DEBT': 'TOTAL_CUSTOMER_DEBT'})
     cust_overdue = bureau_df[['SK_ID_CURR', 'AMT_CREDIT_SUM_OVERDUE']].groupby(by=['SK_ID_CURR'])[
@@ -286,7 +291,7 @@ def gen_cust_overdue_debt(bureau_df):
 
 def gen_avg_prolong(bureau_df):
     bureau_df = bureau_df.copy()
-    bureau_df['CNT_CREDIT_PROLONG'] = bureau_df['CNT_CREDIT_PROLONG'].fillna(0)
+    bureau_df['CNT_CREDIT_PROLONG'] = bureau_df['CNT_CREDIT_PROLONG'].fillna(bureau_df['CNT_CREDIT_PROLONG'].mean())
     avg_prolong = bureau_df[['SK_ID_CURR', 'CNT_CREDIT_PROLONG']].groupby(by=['SK_ID_CURR'])[
         'CNT_CREDIT_PROLONG'].mean().reset_index().rename(index=str,
                                                           columns={'CNT_CREDIT_PROLONG': 'AVG_CREDITDAYS_PROLONGED'})
