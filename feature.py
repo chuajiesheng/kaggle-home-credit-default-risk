@@ -36,12 +36,12 @@ def read_dataset():
     categorical_features = [col for col in X.columns if X[col].dtype == 'object']
 
     train_test = pd.concat([X, X_test])
-    train_test = pd.get_dummies(train_test, columns=categorical_features)
+    train_test_one_hot = pd.get_dummies(train_test, columns=categorical_features)
 
-    X = train_test.iloc[:X.shape[0], :]
-    X_test = train_test.iloc[X.shape[0]:, ]
+    X = train_test_one_hot.iloc[:X.shape[0], :]
+    X_test = train_test_one_hot.iloc[X.shape[0]:, ]
 
-    return X, y, X_test, train_test, bureau, bureau_bal, prev, credit_card_bal, pos_cash, installment_payment
+    return X, y, X_test, train_test, train_test_one_hot, bureau, bureau_bal, prev, credit_card_bal, pos_cash, installment_payment
 
 
 def gen_relative_calculation(train_test_df):
@@ -569,9 +569,9 @@ def gen_avg_payments(installment_payment_df):
     return avg_payments.merge(right=avg_payments2, how='left', on='SK_ID_CURR').merge(right=avg_payments3, how='left', on='SK_ID_CURR')
 
 
-def get_feature_mapping(train_test, bureau, bureau_bal, prev, credit_card_bal, pos_cash, installment_payment):
+def get_feature_mapping(train_test, train_test_one_hot, bureau, bureau_bal, prev, credit_card_bal, pos_cash, installment_payment):
     return [
-        (delayed(gen_relative_calculation)(train_test)),
+        (delayed(gen_relative_calculation)(train_test_one_hot)),
         (delayed(gen_new_relative_feature)(train_test)),
         (delayed(gen_prev_installment_feature)(installment_payment)),
         (delayed(gen_bur_month_balance)(bureau, bureau_bal)),

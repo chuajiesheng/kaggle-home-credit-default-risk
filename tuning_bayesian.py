@@ -17,8 +17,8 @@ n_threads = n_jobs = round(cpu_count() * 2 * 0.75)
 n_jobs = cpu_count()
 verbose = 1
 
-X, y, X_test, train_test, bureau, bureau_bal, prev, credit_card_bal, pos_cash, installment_payment = f.read_dataset()
-feature_mapping = f.get_feature_mapping(train_test, bureau, bureau_bal, prev, credit_card_bal, pos_cash, installment_payment)
+X, y, X_test, train_test, train_test_one_hot, bureau, bureau_bal, prev, credit_card_bal, pos_cash, installment_payment = f.read_dataset()
+feature_mapping = f.get_feature_mapping(train_test, train_test_one_hot, bureau, bureau_bal, prev, credit_card_bal, pos_cash, installment_payment)
 features = Parallel(n_jobs=n_jobs, verbose=verbose)(feature_mapping)
 
 for df in features:
