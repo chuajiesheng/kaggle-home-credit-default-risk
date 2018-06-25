@@ -90,7 +90,7 @@ def gen_new_relative_feature(train_test_df):
     df['SOURCES_PRODUCT'] = application_df['EXT_SOURCE_1'] * application_df['EXT_SOURCE_2'] * application_df['EXT_SOURCE_3']
     df['EXT_SOURCES_MEAN'] = application_df[['EXT_SOURCE_1', 'EXT_SOURCE_2', 'EXT_SOURCE_3']].mean(axis=1)
     df['EXT_SOURCES_STD'] = application_df[['EXT_SOURCE_1', 'EXT_SOURCE_2', 'EXT_SOURCE_3']].std(axis=1)
-    df['EXT_SOURCES_STD'] = application_df['EXT_SOURCES_STD'].fillna(application_df['EXT_SOURCES_STD'].mean())
+    df['EXT_SOURCES_STD'] = df['EXT_SOURCES_STD'].fillna(df['EXT_SOURCES_STD'].mean())
     df['CAR_TO_BIRTH_RATIO'] = application_df['OWN_CAR_AGE'] / application_df['DAYS_BIRTH']
     df['CAR_TO_EMPLOY_RATIO'] = application_df['OWN_CAR_AGE'] / application_df['DAYS_EMPLOYED']
     df['PHONE_TO_BIRTH_RATIO'] = application_df['DAYS_LAST_PHONE_CHANGE'] / application_df['DAYS_BIRTH']
