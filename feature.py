@@ -67,6 +67,37 @@ def gen_relative_calculation(train_test_df):
 
     return application_df
 
+
+def gen_new_relative_feature(train_test_df):
+    docs = [_f for _f in train_test_df.columns if 'FLAG_DOC' in _f]
+    live = [_f for _f in train_test_df.columns if ('FLAG_' in _f) & ('FLAG_DOC' not in _f) & ('_FLAG_' not in _f)]
+
+    source_features = ['DAYS_EMPLOYED', 'DAYS_BIRTH', 'AMT_INCOME_TOTAL', 'AMT_CREDIT', 'CNT_FAM_MEMBERS',
+                       'AMT_ANNUITY', 'CNT_CHILDREN', 'AMT_GOODS_PRICE', 'ORGANIZATION_TYPE', 'EXT_SOURCE_1',
+                       'EXT_SOURCE_2', 'EXT_SOURCE_3', 'OWN_CAR_AGE', 'DAYS_LAST_PHONE_CHANGE']
+    features = ['SK_ID_CURR'] + source_features + docs + live
+    application_df = train_test_df[features].copy()
+
+    inc_by_org = application_df[['AMT_INCOME_TOTAL', 'ORGANIZATION_TYPE']].groupby('ORGANIZATION_TYPE').median()['AMT_INCOME_TOTAL']
+
+    df = application_df[['SK_ID_CURR']].copy()
+    df['CREDIT_TO_GOODS_RATIO'] = application_df['AMT_CREDIT'] / application_df['AMT_GOODS_PRICE']
+    df['DOC_IND_KURT'] = application_df[docs].kurtosis(axis=1)
+    df['LIVE_IND_SUM'] = application_df[live].sum(axis=1)
+    df['INCOME_PER_CHLD'] = application_df['AMT_INCOME_TOTAL'] / (1 + application_df['CNT_CHILDREN'])
+    df['INCOME_BY_ORG'] = application_df['ORGANIZATION_TYPE'].map(inc_by_org)
+    df['NEW_ANNUITY_TO_INCOME_RATIO'] = application_df['AMT_ANNUITY'] / (1 + application_df['AMT_INCOME_TOTAL'])
+    df['SOURCES_PRODUCT'] = application_df['EXT_SOURCE_1'] * application_df['EXT_SOURCE_2'] * application_df['EXT_SOURCE_3']
+    df['EXT_SOURCES_MEAN'] = application_df[['EXT_SOURCE_1', 'EXT_SOURCE_2', 'EXT_SOURCE_3']].mean(axis=1)
+    df['EXT_SOURCES_STD'] = application_df[['EXT_SOURCE_1', 'EXT_SOURCE_2', 'EXT_SOURCE_3']].std(axis=1)
+    df['EXT_SOURCES_STD'] = application_df['EXT_SOURCES_STD'].fillna(application_df['EXT_SOURCES_STD'].mean())
+    df['CAR_TO_BIRTH_RATIO'] = application_df['OWN_CAR_AGE'] / application_df['DAYS_BIRTH']
+    df['CAR_TO_EMPLOY_RATIO'] = application_df['OWN_CAR_AGE'] / application_df['DAYS_EMPLOYED']
+    df['PHONE_TO_BIRTH_RATIO'] = application_df['DAYS_LAST_PHONE_CHANGE'] / application_df['DAYS_BIRTH']
+    df['PHONE_TO_EMPLOY_RATIO'] = application_df['DAYS_LAST_PHONE_CHANGE'] / application_df['DAYS_EMPLOYED']
+
+    return df
+
 #
 # Generated features from previous application
 #
@@ -541,7 +572,7 @@ def gen_avg_payments(installment_payment_df):
 def get_feature_mapping(train_test, bureau, bureau_bal, prev, credit_card_bal, pos_cash, installment_payment):
     return [
         (delayed(gen_relative_calculation)(train_test)),
-        (delayed(gen_relative_calculation)(train_test)),
+        (delayed(gen_new_relative_feature)(train_test)),
         (delayed(gen_prev_installment_feature)(installment_payment)),
         (delayed(gen_bur_month_balance)(bureau, bureau_bal)),
         (delayed(gen_credit_variety)(bureau)),
