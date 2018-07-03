@@ -78,7 +78,6 @@ def lgb_evaluate(max_bin, min_child_samples, learning_rate, num_leaves, min_chil
                        nfold=5,
                        num_boost_round=num_rounds,
                        early_stopping_rounds=50,
-                       verbose_eval=100,
                        seed=random_state,
                        show_stdv=True)
 
