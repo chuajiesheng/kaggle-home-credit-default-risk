@@ -948,6 +948,21 @@ def credit_card_balance():
     return cc_agg
 
 
+def gen_reduced_relative_calculation():
+    train_test_df = get_train_test_df()
+    df = train_test_df[['SK_ID_CURR']].copy()
+    source_features = ['DAYS_EMPLOYED', 'DAYS_BIRTH', 'AMT_INCOME_TOTAL', 'AMT_CREDIT', 'CNT_FAM_MEMBERS', 'AMT_ANNUITY', 'CNT_CHILDREN']
+    application_df = train_test_df[['SK_ID_CURR'] + source_features].copy()
+
+    application_df['DAYS_EMPLOYED'].replace(365243, np.nan, inplace=True)
+    df['INCOME_CREDIT_PERC'] = application_df['AMT_INCOME_TOTAL'] / application_df['AMT_CREDIT']
+    df['INCOME_PER_PERSON'] = application_df['AMT_INCOME_TOTAL'] / application_df['CNT_FAM_MEMBERS']
+    df['ANNUITY_LENGTH'] = application_df['AMT_CREDIT'] / application_df['AMT_ANNUITY']
+    df['CHILDREN_RATIO'] = application_df['CNT_CHILDREN'] / application_df['CNT_FAM_MEMBERS']
+
+    return df
+
+
 def get_selected_features_df():
     return [
         (delayed(application_train_test)()),
@@ -956,4 +971,6 @@ def get_selected_features_df():
         (delayed(pos_cash)()),
         (delayed(installments_payments)()),
         (delayed(credit_card_balance)()),
+        (delayed(gen_reduced_relative_calculation)()),
+        (delayed(gen_prev_installment_feature)(pd.read_csv(INSTALLMENT_PAYMENT_FILE))),
     ]

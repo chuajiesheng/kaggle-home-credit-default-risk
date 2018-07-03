@@ -128,4 +128,3 @@ if __name__ == "__main__":
     run_datetime = datetime.now()
     submission_file_name = os.path.join(SUBMISSION_DIR, 'ogrellier_{0:%Y-%m-%d_%H:%M:%S}.csv'.format(run_datetime))
     main()
-    
