@@ -136,6 +136,8 @@ def gen_prev_installment_feature(installment_payment_df):
     del prev_installment_feature_by_curr['SK_ID_PREV']
 
     assert 'SK_ID_CURR' in prev_installment_feature_by_curr.columns
+    prev_installment_feature_by_curr = prev_installment_feature_by_curr.set_index('SK_ID_CURR')
+    assert 'SK_ID_CURR' not in prev_installment_feature_by_curr.columns
 
     return prev_installment_feature_by_curr
 
