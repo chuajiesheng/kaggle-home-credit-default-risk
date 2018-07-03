@@ -84,7 +84,7 @@ def kfold_lightgbm(df, num_folds, stratified=False, debug=False):
         fold_importance_df["feature"] = feats
         fold_importance_df["importance"] = clf.feature_importance(importance_type='gain')
         fold_importance_df["fold"] = n_fold + 1
-        feature_importance_df = pd.concat([feature_importance_df, fold_importance_df], axis=0)
+        feature_importance_df = pd.concat([feature_importance_df, fold_importance_df], axis=0, sort=True)
         print('Fold %2d AUC : %.6f' % (n_fold + 1, roc_auc_score(dvalid.label, oof_preds[valid_idx])))
         del clf, dtrain, dvalid
         gc.collect()
