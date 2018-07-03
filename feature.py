@@ -949,10 +949,8 @@ def credit_card_balance():
 
 
 def gen_reduced_relative_calculation():
-    train_test_df = get_train_test_df()
-    df = train_test_df[['SK_ID_CURR']].copy()
-    source_features = ['DAYS_EMPLOYED', 'DAYS_BIRTH', 'AMT_INCOME_TOTAL', 'AMT_CREDIT', 'CNT_FAM_MEMBERS', 'AMT_ANNUITY', 'CNT_CHILDREN']
-    application_df = train_test_df[['SK_ID_CURR'] + source_features].copy()
+    application_df = get_train_test_df()
+    df = application_df[['SK_ID_CURR']].copy()
 
     application_df['DAYS_EMPLOYED'].replace(365243, np.nan, inplace=True)
     df['INCOME_CREDIT_PERC'] = application_df['AMT_INCOME_TOTAL'] / application_df['AMT_CREDIT']
