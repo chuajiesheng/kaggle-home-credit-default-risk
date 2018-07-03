@@ -960,7 +960,7 @@ def gen_reduced_relative_calculation():
     df['ANNUITY_LENGTH'] = application_df['AMT_CREDIT'] / application_df['AMT_ANNUITY']
     df['CHILDREN_RATIO'] = application_df['CNT_CHILDREN'] / application_df['CNT_FAM_MEMBERS']
 
-    df.set_index('SK_ID_CURR')
+    df = df.set_index('SK_ID_CURR')
     assert 'SK_ID_CURR' not in df.columns
     return df
 
