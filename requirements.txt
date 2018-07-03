@@ -1,7 +1,5 @@
 numpy
 pandas
-gc
-time
 contextlib
 lightgbm
 sklearn
