@@ -135,6 +135,8 @@ def gen_prev_installment_feature(installment_payment_df):
     prev_installment_feature_by_curr = prev_installment_feature_by_curr.fillna(prev_installment_feature_by_curr.mean()).reset_index()
     del prev_installment_feature_by_curr['SK_ID_PREV']
 
+    assert 'SK_ID_CURR' in prev_installment_feature_by_curr.columns
+
     return prev_installment_feature_by_curr
 
 
@@ -958,6 +960,7 @@ def gen_reduced_relative_calculation():
     df['ANNUITY_LENGTH'] = application_df['AMT_CREDIT'] / application_df['AMT_ANNUITY']
     df['CHILDREN_RATIO'] = application_df['CNT_CHILDREN'] / application_df['CNT_FAM_MEMBERS']
 
+    assert 'SK_ID_CURR' in df.columns
     return df
 
 
