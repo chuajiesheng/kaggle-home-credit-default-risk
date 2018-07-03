@@ -716,11 +716,7 @@ def one_hot_encoder(df, nan_as_category=True):
 
 
 def application_train_test():
-    df = pd.read_csv(INPUT_FILE)
-    test_df = pd.read_csv(TEST_INPUT_FILE)
-    print("Train samples: {}, test samples: {}".format(len(df), len(test_df)))
-    df = df.append(test_df).reset_index()
-
+    df = get_train_test_df()
     df = df[df['CODE_GENDER'] != 'XNA']
 
     docs = [_f for _f in df.columns if 'FLAG_DOC' in _f]
@@ -758,6 +754,14 @@ def application_train_test():
     df, cat_cols = one_hot_encoder(df, nan_as_category=False)
     df.drop(columns_not_needed(), axis=1, inplace=True, errors='ignore')
 
+    return df
+
+
+def get_train_test_df():
+    df = pd.read_csv(INPUT_FILE)
+    test_df = pd.read_csv(TEST_INPUT_FILE)
+    print("Train samples: {}, test samples: {}".format(len(df), len(test_df)))
+    df = df.append(test_df).reset_index()
     return df
 
 
