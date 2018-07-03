@@ -2,17 +2,32 @@
 # From Kaggler : https://www.kaggle.com/jsaguiar
 # Just added a few features so I thought I had to make release it as well...
 
-import numpy as np
-import pandas as pd
 import gc
+import os
 import time
+import warnings
 from contextlib import contextmanager
 import lightgbm as lgb
-from sklearn.metrics import roc_auc_score, roc_curve
-from sklearn.model_selection import KFold, StratifiedKFold
 import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
 import seaborn as sns
-import warnings
+from sklearn.metrics import roc_auc_score
+from sklearn.model_selection import KFold, StratifiedKFold
+
+LABEL_COLUMN = 'TARGET'
+
+DATA_DIR = '{}/data'.format(os.getcwd())
+INPUT_FILE = os.path.join(DATA_DIR, 'application_train.csv.zip')
+TEST_INPUT_FILE = os.path.join(DATA_DIR, 'application_test.csv.zip')
+BUREAU_FILE = os.path.join(DATA_DIR, 'bureau.csv.zip')
+BUREAU_BAL_FILE = os.path.join(DATA_DIR, 'bureau_balance.csv.zip')
+PREV_APPLICATION_FILE = os.path.join(DATA_DIR, 'previous_application.csv.zip')
+CREDIT_CARD_BAL_FILE = os.path.join(DATA_DIR, 'credit_card_balance.csv.zip')
+POS_CASH_FILE = os.path.join(DATA_DIR, 'POS_CASH_balance.csv.zip')
+INSTALLMENT_PAYMENT_FILE = os.path.join(DATA_DIR, 'installments_payments.csv.zip')
+SUBMISSION_FILE = os.path.join(DATA_DIR, 'sample_submission.csv.zip')
+
 
 warnings.simplefilter(action='ignore', category=FutureWarning)
 
@@ -125,8 +140,8 @@ def one_hot_encoder(df, nan_as_category=True):
 # Preprocess application_train.csv and application_test.csv
 def application_train_test(num_rows=None, nan_as_category=False):
     # Read data and merge
-    df = pd.read_csv('../input/application_train.csv', nrows=num_rows)
-    test_df = pd.read_csv('../input/application_test.csv', nrows=num_rows)
+    df = pd.read_csv(INPUT_FILE, nrows=num_rows)
+    test_df = pd.read_csv(TEST_INPUT_FILE, nrows=num_rows)
     print("Train samples: {}, test samples: {}".format(len(df), len(test_df)))
     df = df.append(test_df).reset_index()
     # Optional: Remove 4 applications with XNA CODE_GENDER (train set)
@@ -175,8 +190,8 @@ def application_train_test(num_rows=None, nan_as_category=False):
 
 # Preprocess bureau.csv and bureau_balance.csv
 def bureau_and_balance(num_rows=None, nan_as_category=True):
-    bureau = pd.read_csv('../input/bureau.csv', nrows=num_rows)
-    bb = pd.read_csv('../input/bureau_balance.csv', nrows=num_rows)
+    bureau = pd.read_csv(BUREAU_FILE, nrows=num_rows)
+    bb = pd.read_csv(BUREAU_BAL_FILE, nrows=num_rows)
     bb, bb_cat = one_hot_encoder(bb, nan_as_category)
     bureau, bureau_cat = one_hot_encoder(bureau, nan_as_category)
 
@@ -239,7 +254,7 @@ def bureau_and_balance(num_rows=None, nan_as_category=True):
 
 # Preprocess previous_applications.csv
 def previous_applications(num_rows=None, nan_as_category=True):
-    prev = pd.read_csv('../input/previous_application.csv', nrows=num_rows)
+    prev = pd.read_csv(PREV_APPLICATION_FILE, nrows=num_rows)
     prev, cat_cols = one_hot_encoder(prev, nan_as_category=True)
     # Days 365.243 values -> nan
     prev['DAYS_FIRST_DRAWING'].replace(365243, np.nan, inplace=True)
@@ -291,7 +306,7 @@ def previous_applications(num_rows=None, nan_as_category=True):
 
 # Preprocess POS_CASH_balance.csv
 def pos_cash(num_rows=None, nan_as_category=True):
-    pos = pd.read_csv('../input/POS_CASH_balance.csv', nrows=num_rows)
+    pos = pd.read_csv(POS_CASH_FILE, nrows=num_rows)
     pos, cat_cols = one_hot_encoder(pos, nan_as_category=True)
     # Features
     aggregations = {
@@ -313,7 +328,7 @@ def pos_cash(num_rows=None, nan_as_category=True):
 
 # Preprocess installments_payments.csv
 def installments_payments(num_rows=None, nan_as_category=True):
-    ins = pd.read_csv('../input/installments_payments.csv', nrows=num_rows)
+    ins = pd.read_csv(INSTALLMENT_PAYMENT_FILE, nrows=num_rows)
     ins, cat_cols = one_hot_encoder(ins, nan_as_category=True)
     # Percentage and difference paid in each installment (amount paid and installment value)
     ins['PAYMENT_PERC'] = ins['AMT_PAYMENT'] / ins['AMT_INSTALMENT']
@@ -347,7 +362,7 @@ def installments_payments(num_rows=None, nan_as_category=True):
 
 # Preprocess credit_card_balance.csv
 def credit_card_balance(num_rows=None, nan_as_category=True):
-    cc = pd.read_csv('../input/credit_card_balance.csv', nrows=num_rows)
+    cc = pd.read_csv(CREDIT_CARD_BAL_FILE, nrows=num_rows)
     cc, cat_cols = one_hot_encoder(cc, nan_as_category=True)
     # General aggregations
     cc.drop(['SK_ID_PREV'], axis=1, inplace=True)
