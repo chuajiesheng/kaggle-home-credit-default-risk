@@ -114,9 +114,11 @@ def display_importances(feature_importance_df_):
 def main(debug=False):
     features = Parallel(n_jobs=cpu_count())(f.get_selected_features_df())
 
-    df = features[0]
-    for feature in features[1:]:
-        df = df.join(feature, how='left', on='SK_ID_CURR')
+    df = None
+    for i in range(len(features)):
+        print('at {} of {}'.format(i, len(features)))
+        feature = features[i]
+        df = df.join(feature, how='left', on='SK_ID_CURR') if df is not None else feature
 
     print(df.shape)
     df.drop(f.columns_not_needed(), axis=1, inplace=True, errors='ignore')
